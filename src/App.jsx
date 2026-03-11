@@ -429,15 +429,48 @@ export default function App() {
                   <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3 bg-slate-100 p-2 rounded">Emissões (Taxa Base)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.cdi} onChange={(e) => setTaxRequests({ ...taxRequests, cdi: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input 
+                        type="checkbox" 
+                        checked={taxRequests.cdi}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTaxRequests({ cdi: true, cdsa: false, adiamento: false });
+                          } else {
+                            setTaxRequests({ cdi: false, cdsa: false, adiamento: false });
+                          }
+                        }} 
+                        className="w-4 h-4 rounded text-emerald-600" 
+                      />
                       Requerer CDI (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.cdsa} onChange={(e) => setTaxRequests({ ...taxRequests, cdsa: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input 
+                        type="checkbox" 
+                        checked={taxRequests.cdsa} 
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTaxRequests({ cdi: false, cdsa: true, adiamento: false });
+                          } else {
+                            setTaxRequests({ cdi: false, cdsa: false, adiamento: false });
+                          }
+                        }} 
+                        className="w-4 h-4 rounded text-emerald-600" 
+                      />
                       Requerer CDSA (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.adiamento} onChange={(e) => setTaxRequests({ ...taxRequests, adiamento: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input 
+                        type="checkbox" 
+                        checked={taxRequests.adiamento} 
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTaxRequests({ cdi: false, cdsa: false, adiamento: true });
+                          } else {
+                            setTaxRequests({ cdi: false, cdsa: false, adiamento: false });
+                          }
+                        }} 
+                        className="w-4 h-4 rounded text-emerald-600" 
+                      />
                       Requerer Adiamento de Incorporação
                     </label>
                   </div>
@@ -448,15 +481,48 @@ export default function App() {
                   <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded">Extravios (Multas)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="checkbox" checked={lostDocs.cam} onChange={(e) => setLostDocs({ ...lostDocs, cam: e.target.checked })} className="w-4 h-4 rounded text-red-600" />
+                      <input 
+                        type="checkbox" 
+                        checked={lostDocs.cam} 
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setLostDocs({ cam: true, cr_csm: false, cdi_ci_cdsa: false });
+                          } else {
+                            setLostDocs({ cam: false, cr_csm: false, cdi_ci_cdsa: false });
+                          }
+                        }} 
+                        className="w-4 h-4 rounded text-red-600" 
+                      />
                       Extravio do CAM
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="checkbox" checked={lostDocs.cr_csm} onChange={(e) => setLostDocs({ ...lostDocs, cr_csm: e.target.checked })} className="w-4 h-4 rounded text-red-600" />
+                      <input 
+                        type="checkbox" 
+                        checked={lostDocs.cr_csm} 
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setLostDocs({ cam: false, cr_csm: true, cdi_ci_cdsa: false });
+                          } else {
+                            setLostDocs({ cam: false, cr_csm: false, cdi_ci_cdsa: false });
+                          }
+                        }} 
+                        className="w-4 h-4 rounded text-red-600" 
+                      />
                       Extravio do CR ou CSM
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="checkbox" checked={lostDocs.cdi_ci_cdsa} onChange={(e) => setLostDocs({ ...lostDocs, cdi_ci_cdsa: e.target.checked })} className="w-4 h-4 rounded text-red-600" />
+                      <input 
+                        type="checkbox" 
+                        checked={lostDocs.cdi_ci_cdsa} 
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setLostDocs({ cam: false, cr_csm: false, cdi_ci_cdsa: true });
+                          } else {
+                            setLostDocs({ cam: false, cr_csm: false, cdi_ci_cdsa: false });
+                          }
+                        }} 
+                        className="w-4 h-4 rounded text-red-600" 
+                      />
                       Extravio do CDI, CI ou CDSA
                     </label>
                   </div>
