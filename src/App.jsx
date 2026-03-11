@@ -56,14 +56,14 @@ export default function App() {
   const [lostDocs, setLostDocs] = useState({ cam: false, cr_csm: false, cdi_ci_cdsa: false });
 
   // Toggle helpers
-  const handleTaxToggle = (key) => setTaxRequests(prev => ({...prev, [key]: !prev[key]}));
-  const handleLostDocsToggle = (key) => setLostDocs(prev => ({...prev, [key]: !prev[key]}));
+  const handleTaxToggle = (key) => setTaxRequests(prev => ({ ...prev, [key]: !prev[key] }));
+  const handleLostDocsToggle = (key) => setLostDocs(prev => ({ ...prev, [key]: !prev[key] }));
 
   // --- MOTOR DE CÁLCULO ---
   const calculations = useMemo(() => {
     let breakdown = [];
     let total = 0;
-    
+
     // 1. ALISTAMENTO
     if (enlistmentStatus === 'late') {
       const mult = rules.alistamentoAtraso;
@@ -101,9 +101,9 @@ export default function App() {
       const multBase = isMfdv ? rules.exarMfdv : rules.exarPracaR2;
       const amparo = isMfdv ? 'Art. 52/58 LMFDV' : 'Art. 47 LSM / Art. 177 RLSM';
       const multTotal = exarMissedYears * multBase;
-      breakdown.push({ 
-        label: `Falta EXAR (${exarMissedYears}x - ${isMfdv ? 'Oficiais MFDV' : 'Praças/Oficiais R/2'})`, 
-        amparo, mult: multTotal, amount: multTotal * baseFee 
+      breakdown.push({
+        label: `Falta EXAR (${exarMissedYears}x - ${isMfdv ? 'Oficiais MFDV' : 'Praças/Oficiais R/2'})`,
+        amparo, mult: multTotal, amount: multTotal * baseFee
       });
       total += multTotal * baseFee;
     }
@@ -159,7 +159,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-800">
       <div className="mx-auto space-y-6">
-        
+
         {/* HEADER E CONFIGURAÇÕES */}
         <header className="bg-emerald-900 text-white rounded-xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
@@ -170,16 +170,16 @@ export default function App() {
             <p className="text-emerald-200 mt-1 text-sm">Atualizada com as novas penalidades pecuniárias do RCORE.</p>
           </div>
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            <button 
+            <button
               onClick={() => setShowSettings(!showSettings)}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-800 hover:bg-emerald-700 border border-emerald-600 rounded-lg text-sm font-bold transition-colors"
             >
               <SlidersHorizontal className="w-4 h-4" />
-              Regras e Multiplicadores {showSettings ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
+              Regras e Multiplicadores {showSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
             <div className="bg-emerald-950/50 p-2 px-3 rounded-lg border border-emerald-800 flex items-center gap-2">
               <label className="text-xs text-emerald-300 font-bold uppercase tracking-wider">Base (R$)</label>
-              <input 
+              <input
                 type="number" step="0.01" value={baseFee} onChange={(e) => setBaseFee(Number(e.target.value))}
                 className="w-20 px-2 py-1 bg-white rounded text-slate-900 font-bold outline-none"
               />
@@ -219,16 +219,16 @@ export default function App() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
+
           {/* PAINEL CENTRAL - FLUXO DE TRIAGEM */}
           <div className="lg:col-span-7 space-y-6">
-            
+
             {/* Etapa 1: Dados e Alistamento */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
                 <User className="w-5 h-5" /> 1. Dados e Situação de Alistamento
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Ano de Nascimento</label>
@@ -265,7 +265,7 @@ export default function App() {
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
                 <ShieldAlert className="w-5 h-5" /> 2. Seleção Geral e Obrigações da Reserva
               </h2>
-              
+
               <div className="space-y-6">
                 {/* Seleção */}
                 <div className="bg-amber-50/50 p-4 rounded-lg border border-amber-100">
@@ -319,10 +319,10 @@ export default function App() {
                       <span className="font-medium">Não comunicou mudança de residência (60 dias)</span>
                     </label>
                     {reserveCategory === 'oficial_mfdv' && (
-                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-100 p-2 rounded border border-transparent hover:border-slate-200">
-                       <input type="checkbox" checked={mfdvLateDiploma} onChange={(e) => setMfdvLateDiploma(e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
-                       <span className="font-medium">Atraso na apresentação de diploma ({'>'}60 dias)</span>
-                     </label>
+                      <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-100 p-2 rounded border border-transparent hover:border-slate-200">
+                        <input type="checkbox" checked={mfdvLateDiploma} onChange={(e) => setMfdvLateDiploma(e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
+                        <span className="font-medium">Atraso na apresentação de diploma ({'>'}60 dias)</span>
+                      </label>
                     )}
                   </div>
                 </div>
@@ -334,22 +334,22 @@ export default function App() {
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
                 <FileText className="w-5 h-5" /> 3. Solicitações e Extravios de Documentos
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Taxas */}
                 <div>
                   <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3 bg-slate-100 p-2 rounded">Emissões (Taxa Base)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.cdi} onChange={() => handleTaxToggle('cdi')} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="radio" name="taxRequest" checked={taxRequests.cdi} onChange={() => setTaxRequests({ cdi: true, cdsa: false, adiamento: false })} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CDI (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.cdsa} onChange={() => handleTaxToggle('cdsa')} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="radio" name="taxRequest" checked={taxRequests.cdsa} onChange={() => setTaxRequests({ cdi: false, cdsa: true, adiamento: false })} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CDSA (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.adiamento} onChange={() => handleTaxToggle('adiamento')} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="radio" name="taxRequest" checked={taxRequests.adiamento} onChange={() => setTaxRequests({ cdi: false, cdsa: false, adiamento: true })} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer Adiamento de Incorporação
                     </label>
                   </div>
@@ -360,15 +360,15 @@ export default function App() {
                   <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded">Extravios (Multas)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="checkbox" checked={lostDocs.cam} onChange={() => handleLostDocsToggle('cam')} className="w-4 h-4 rounded text-red-600" />
+                      <input type="radio" name="lostDoc" checked={lostDocs.cam} onChange={() => setLostDocs({ cam: true, cr_csm: false, cdi_ci_cdsa: false })} className="w-4 h-4 rounded text-red-600" />
                       Extravio do CAM
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="checkbox" checked={lostDocs.cr_csm} onChange={() => handleLostDocsToggle('cr_csm')} className="w-4 h-4 rounded text-red-600" />
+                      <input type="radio" name="lostDoc" checked={lostDocs.cr_csm} onChange={() => setLostDocs({ cam: false, cr_csm: true, cdi_ci_cdsa: false })} className="w-4 h-4 rounded text-red-600" />
                       Extravio do CR ou CSM
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="checkbox" checked={lostDocs.cdi_ci_cdsa} onChange={() => handleLostDocsToggle('cdi_ci_cdsa')} className="w-4 h-4 rounded text-red-600" />
+                      <input type="radio" name="lostDoc" checked={lostDocs.cdi_ci_cdsa} onChange={() => setLostDocs({ cam: false, cr_csm: false, cdi_ci_cdsa: true })} className="w-4 h-4 rounded text-red-600" />
                       Extravio do CDI, CI ou CDSA
                     </label>
                   </div>
@@ -380,7 +380,7 @@ export default function App() {
           {/* PAINEL LATERAL - EXTRATO DE RECOLHIMENTO */}
           <div className="lg:col-span-5">
             <div className="bg-white border-2 border-slate-800 rounded-xl shadow-2xl sticky top-6 overflow-hidden flex flex-col h-[calc(100vh-3rem)] max-h-[850px]">
-              
+
               <div className="bg-slate-800 text-white p-5">
                 <h2 className="text-xl font-bold flex items-center gap-2">
                   <Receipt className="w-6 h-6" /> Extrato de Recolhimento
@@ -392,7 +392,7 @@ export default function App() {
                 {!calculations.hasItems ? (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
                     <CheckCircle2 className="w-12 h-12 text-slate-300" />
-                    <p className="text-center">Nenhuma taxa ou multa selecionada.<br/>Situação regular sem custos.</p>
+                    <p className="text-center">Nenhuma taxa ou multa selecionada.<br />Situação regular sem custos.</p>
                   </div>
                 ) : (
                   <ul className="space-y-4">
@@ -406,7 +406,7 @@ export default function App() {
                             {item.amount < 0 ? '-' : ''} R$ {Math.abs(item.amount).toFixed(2).replace('.', ',')}
                           </span>
                         </div>
-                        
+
                         {item.amount >= 0 && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
@@ -440,7 +440,7 @@ export default function App() {
                   A JSM não está autorizada a receber valores em mãos. Emita a GRU ou chave PIX correspondente.
                 </div>
 
-                <button 
+                <button
                   className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 font-bold uppercase tracking-wide text-sm"
                   onClick={() => window.print()}
                 >
