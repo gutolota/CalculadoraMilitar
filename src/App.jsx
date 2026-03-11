@@ -267,11 +267,11 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div className="bg-slate-50 p-3 rounded border border-slate-200">
                 <h4 className="font-bold text-slate-700 mb-3 border-b pb-1">Alistamento & Seleção</h4>
-                {renderRuleInput('Atraso Alistamento', 'alistamentoAtraso')}
+                {renderRuleInput('Atraso Alistamento (Refratário)', 'alistamentoAtraso')}
                 {renderRuleInput('Alist. Múltiplo', 'alistamentoMultiplo')}
-                {renderRuleInput('Refratário (1ª vez)', 'refratario1')}
-                {renderRuleInput('Refratário (2ª vez)', 'refratario2')}
-                {renderRuleInput('Refratário (3ª+ vez)', 'refratario3Mais')}
+                {renderRuleInput('Faltar a CS 1ª vez', 'refratario1')}
+                {renderRuleInput('Faltar a CS 2ª vez', 'refratario2')}
+                {renderRuleInput('Faltar a CS 3ª+ vezes', 'refratario3Mais')}
               </div>
               
               <div className="bg-slate-50 p-3 rounded border border-slate-200">
