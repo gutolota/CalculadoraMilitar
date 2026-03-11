@@ -1,221 +1,222 @@
 import React, { useState, useMemo } from 'react';
-import { Calculator, AlertCircle, CheckCircle2, Receipt, Settings, User, FileText, ShieldAlert, Calendar } from 'lucide-react';
+import { Calculator, AlertCircle, CheckCircle2, Receipt, Settings, User, FileText, ShieldAlert, Calendar, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function App() {
-  // Configurações Base
-  const [baseFee, setBaseFee] = useState(6.46); // Atualizado para o valor do exemplo
-  
-  // 1. DADOS INICIAIS
-  const [birthYear, setBirthYear] = useState(2006); // Usando ano de nascimento para simplificar o fluxo
+  // --- CONFIGURAÇÕES BASE E REGRAS DINÂMICAS ---
+  const [baseFee, setBaseFee] = useState(6.46);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Todas as regras e multiplicadores agora são editáveis
+  const [rules, setRules] = useState({
+    // Alistamento e Seleção
+    alistamentoAtraso: 1,
+    alistamentoMultiplo: 3,
+    refratario1: 1,
+    refratario2: 5,
+    refratario3Mais: 5,
+    // EXAR e Reserva (Atualizado Decreto 12664/2025 RCORE)
+    exarPracaR2: 3,
+    exarMfdv: 5,
+    convocacaoPracaR2: 3,
+    convocacaoMfdv: 15,
+    residenciaPracaR2: 3,
+    residenciaMfdv: 15,
+    // Extravios e Taxas
+    extravio: 3,
+    taxaEmissao: 1,
+    // MFDV Específico
+    mfdvAdiamento: 1,
+    mfdvDiploma: 5
+  });
+
+  const handleRuleChange = (key, value) => {
+    setRules(prev => ({ ...prev, [key]: Number(value) }));
+  };
+
+  // --- ESTADOS DO FORMULÁRIO DO CIDADÃO ---
+  const [birthYear, setBirthYear] = useState(2006);
   const [exemption, setExemption] = useState('none');
 
-  // 2. ALISTAMENTO E SELEÇÃO
-  const [enlistmentStatus, setEnlistmentStatus] = useState('on_time'); // on_time, late
+  // Alistamento e Seleção
+  const [enlistmentStatus, setEnlistmentStatus] = useState('on_time');
   const [multipleEnlistments, setMultipleEnlistments] = useState(false);
-  
-  const [selectionStatus, setSelectionStatus] = useState('ok'); // ok, missed
-  const [refractoryYears, setRefractoryYears] = useState(2); // Inicia com 2 conforme o exemplo
+  const [selectionStatus, setSelectionStatus] = useState('ok');
+  const [refractoryYears, setRefractoryYears] = useState(2);
 
-  // 3. EXAR
-  const [exarType, setExarType] = useState('praca');
+  // Reserva e MFDV (Agrupados)
+  const [reserveCategory, setReserveCategory] = useState('praca_r2'); // 'praca_r2' | 'oficial_mfdv'
   const [exarMissedYears, setExarMissedYears] = useState(0);
-
-  // 4. TAXAS (Emissões)
-  const [taxRequests, setTaxRequests] = useState({
-    cdi: false,
-    cdsa: false,
-    adiamento: false
-  });
-
-  // 5. MULTAS (Extravios)
-  const [lostDocs, setLostDocs] = useState({
-    cam: false,
-    cr_csm: false,
-    cdi_ci_cdsa: false
-  });
-
-  // 6. MFDV
+  const [missedConvocacao, setMissedConvocacao] = useState(false);
+  const [missedResidencia, setMissedResidencia] = useState(false);
   const [mfdvMissedRenewals, setMfdvMissedRenewals] = useState(0);
   const [mfdvLateDiploma, setMfdvLateDiploma] = useState(false);
+
+  // Documentos
+  const [taxRequests, setTaxRequests] = useState({ cdi: false, cdsa: false, adiamento: false });
+  const [lostDocs, setLostDocs] = useState({ cam: false, cr_csm: false, cdi_ci_cdsa: false });
 
   // Toggle helpers
   const handleTaxToggle = (key) => setTaxRequests(prev => ({...prev, [key]: !prev[key]}));
   const handleLostDocsToggle = (key) => setLostDocs(prev => ({...prev, [key]: !prev[key]}));
 
-  // MOTOR DE CÁLCULO
+  // --- MOTOR DE CÁLCULO ---
   const calculations = useMemo(() => {
     let breakdown = [];
     let total = 0;
     
-    // --- MULTAS: ALISTAMENTO ---
+    // 1. ALISTAMENTO
     if (enlistmentStatus === 'late') {
-      breakdown.push({ 
-        label: 'Apresentar-se fora do prazo para alistamento', 
-        amparo: '1) Art 176 RLSM',
-        mult: 1,
-        amount: 1 * baseFee 
-      });
-      total += 1 * baseFee;
+      const mult = rules.alistamentoAtraso;
+      breakdown.push({ label: 'Apresentar-se fora do prazo para alistamento', amparo: 'Art 176 RLSM', mult, amount: mult * baseFee });
+      total += mult * baseFee;
     }
-    
     if (multipleEnlistments) {
-      breakdown.push({ 
-        label: 'Alistar-se mais de uma vez', 
-        amparo: 'Art 44 e № 1) Art 177 RLSM',
-        mult: 3,
-        amount: 3 * baseFee 
-      });
-      total += 3 * baseFee;
+      const mult = rules.alistamentoMultiplo;
+      breakdown.push({ label: 'Alistar-se mais de uma vez', amparo: 'Art 44/177 RLSM', mult, amount: mult * baseFee });
+      total += mult * baseFee;
     }
 
-    // --- MULTAS: SELEÇÃO (REFRATÁRIO) ---
+    // 2. SELEÇÃO (REFRATÁRIO)
     if (selectionStatus === 'missed' && refractoryYears > 0) {
-      // 1ª vez
       if (refractoryYears >= 1) {
-        breakdown.push({ 
-          label: 'Faltar à CS pela 1ª vez (Refratário)', 
-          amparo: '№ 2) Art 176 RLSM',
-          mult: 1,
-          amount: 1 * baseFee 
-        });
-        total += 1 * baseFee;
+        breakdown.push({ label: 'Faltar à CS pela 1ª vez (Refratário)', amparo: 'Art 176 RLSM', mult: rules.refratario1, amount: rules.refratario1 * baseFee });
+        total += rules.refratario1 * baseFee;
       }
-      // 2ª vez
       if (refractoryYears >= 2) {
-        breakdown.push({ 
-          label: 'Faltar à CS pela 2ª vez (Refratário)', 
-          amparo: '№ 1) Art 178 RLSM',
-          mult: 5,
-          amount: 5 * baseFee 
-        });
-        total += 5 * baseFee;
+        breakdown.push({ label: 'Faltar à CS pela 2ª vez (Refratário)', amparo: 'Art 178 RLSM', mult: rules.refratario2, amount: rules.refratario2 * baseFee });
+        total += rules.refratario2 * baseFee;
       }
-      // 3ª vez em diante
       if (refractoryYears >= 3) {
         const extraYears = refractoryYears - 2;
-        breakdown.push({ 
-          label: `Faltar à CS após a 2ª vez (${extraYears}x)`, 
-          amparo: '№ 2) Art 178 RLSM',
-          mult: extraYears * 5,
-          amount: extraYears * 5 * baseFee 
-        });
-        total += extraYears * 5 * baseFee;
+        const mult = extraYears * rules.refratario3Mais;
+        breakdown.push({ label: `Faltar à CS após a 2ª vez (${extraYears}x)`, amparo: 'Art 178 RLSM', mult, amount: mult * baseFee });
+        total += mult * baseFee;
       }
     }
 
-    // --- EXAR ---
+    // 3. OBRIGAÇÕES DA RESERVA E ATUALIZAÇÕES (Novo Decreto RCORE)
+    const isMfdv = reserveCategory === 'oficial_mfdv';
+
     if (exarMissedYears > 0) {
-      const multiplier = exarType === 'oficial' ? 5 : 1;
-      const amparo = exarType === 'oficial' ? 'Art 47 RCORE' : '№ 3) Art 176 RLSM';
-      const exarFine = exarMissedYears * multiplier * baseFee;
-      
+      const multBase = isMfdv ? rules.exarMfdv : rules.exarPracaR2;
+      const amparo = isMfdv ? 'Art. 52/58 LMFDV' : 'Art. 47 LSM / Art. 177 RLSM';
+      const multTotal = exarMissedYears * multBase;
       breakdown.push({ 
-        label: `Deixar de apresentar-se anualmente no EXAR (${exarMissedYears}x - ${exarType === 'oficial' ? 'Oficiais' : 'Praças'})`, 
-        amparo: amparo,
-        mult: exarMissedYears * multiplier,
-        amount: exarFine 
+        label: `Falta EXAR (${exarMissedYears}x - ${isMfdv ? 'Oficiais MFDV' : 'Praças/Oficiais R/2'})`, 
+        amparo, mult: multTotal, amount: multTotal * baseFee 
       });
-      total += exarFine;
+      total += multTotal * baseFee;
     }
 
-    // --- MFDV ---
+    if (missedConvocacao) {
+      const mult = isMfdv ? rules.convocacaoMfdv : rules.convocacaoPracaR2;
+      const amparo = isMfdv ? 'Art. 60(a) LMFDV' : 'Art. 47 LSM / Art. 177 RLSM';
+      breakdown.push({ label: 'Falta à Convocação', amparo, mult, amount: mult * baseFee });
+      total += mult * baseFee;
+    }
+
+    if (missedResidencia) {
+      const mult = isMfdv ? rules.residenciaMfdv : rules.residenciaPracaR2;
+      const amparo = isMfdv ? 'Art. 60(b) LMFDV' : 'Art. 47 LSM / Art. 177 RLSM';
+      breakdown.push({ label: 'Não comunicou mudança de residência (60 dias)', amparo, mult, amount: mult * baseFee });
+      total += mult * baseFee;
+    }
+
+    // 4. MFDV ESPECÍFICOS (Adiamento e Diploma)
     if (mfdvMissedRenewals > 0) {
-      breakdown.push({ 
-        label: `Deixar de renovar adiamento anualmente (${mfdvMissedRenewals}x)`, 
-        amparo: 'Art 73, 74 e 75 RLMFDV',
-        mult: mfdvMissedRenewals,
-        amount: mfdvMissedRenewals * baseFee 
-      });
-      total += mfdvMissedRenewals * baseFee;
+      const mult = mfdvMissedRenewals * rules.mfdvAdiamento;
+      breakdown.push({ label: `Deixar de renovar adiamento (${mfdvMissedRenewals}x)`, amparo: 'Art 73-75 RLMFDV', mult, amount: mult * baseFee });
+      total += mult * baseFee;
     }
-    
     if (mfdvLateDiploma) {
-      breakdown.push({ 
-        label: 'Deixar de apresentar diploma após formação no prazo (60 dias)', 
-        amparo: 'Art 58 LMFDV',
-        mult: 5,
-        amount: 5 * baseFee 
-      });
-      total += 5 * baseFee;
+      const mult = rules.mfdvDiploma;
+      breakdown.push({ label: 'Atraso apresentação diploma (>60 dias)', amparo: 'Art 58 LMFDV', mult, amount: mult * baseFee });
+      total += mult * baseFee;
     }
 
-    // --- MULTAS EXTRAVIO (3x) ---
-    if (lostDocs.cam) {
-      breakdown.push({ label: 'Extravio, inutilização ou alteração do CAM', amparo: '1) Art 177 RLSM', mult: 3, amount: 3 * baseFee });
-      total += 3 * baseFee;
-    }
-    if (lostDocs.cr_csm) {
-      breakdown.push({ label: 'Extravio, inutilização ou alteração do CR/CSM', amparo: '1) Art 177 RLSM', mult: 3, amount: 3 * baseFee });
-      total += 3 * baseFee;
-    }
-    if (lostDocs.cdi_ci_cdsa) {
-      breakdown.push({ label: 'Extravio, inutilização ou alteração do CDI, CI ou CDSA', amparo: '1) Art 177 RLSM', mult: 3, amount: 3 * baseFee });
-      total += 3 * baseFee;
-    }
+    // 5. EXTRAVIOS (Multa 3x editável)
+    const multExtravio = rules.extravio;
+    if (lostDocs.cam) { breakdown.push({ label: 'Extravio/Inutilização do CAM', amparo: 'Art 177 RLSM', mult: multExtravio, amount: multExtravio * baseFee }); total += multExtravio * baseFee; }
+    if (lostDocs.cr_csm) { breakdown.push({ label: 'Extravio/Inutilização do CR/CSM', amparo: 'Art 177 RLSM', mult: multExtravio, amount: multExtravio * baseFee }); total += multExtravio * baseFee; }
+    if (lostDocs.cdi_ci_cdsa) { breakdown.push({ label: 'Extravio do CDI, CI ou CDSA', amparo: 'Art 177 RLSM', mult: multExtravio, amount: multExtravio * baseFee }); total += multExtravio * baseFee; }
 
-    // --- TAXAS EMISSÃO (1x) ---
-    if (taxRequests.cdi) {
-      breakdown.push({ label: 'Requerer CDI (1ª e demais vias)', amparo: '§ 2º Art 107 RLSM', mult: 1, amount: 1 * baseFee });
-      total += 1 * baseFee;
-    }
-    if (taxRequests.cdsa) {
-      breakdown.push({ label: 'Requerer CDSA (1ª e demais vias)', amparo: '§ 3º Art 43 RLPSA', mult: 1, amount: 1 * baseFee });
-      total += 1 * baseFee;
-    }
-    if (taxRequests.adiamento) {
-      breakdown.push({ label: 'Requerer adiamento de incorporação', amparo: 'Art 103 RLSM', mult: 1, amount: 1 * baseFee });
-      total += 1 * baseFee;
-    }
+    // 6. TAXAS (1x editável)
+    const multTaxa = rules.taxaEmissao;
+    if (taxRequests.cdi) { breakdown.push({ label: 'Requerer CDI', amparo: 'Art 107 RLSM', mult: multTaxa, amount: multTaxa * baseFee }); total += multTaxa * baseFee; }
+    if (taxRequests.cdsa) { breakdown.push({ label: 'Requerer CDSA', amparo: 'Art 43 RLPSA', mult: multTaxa, amount: multTaxa * baseFee }); total += multTaxa * baseFee; }
+    if (taxRequests.adiamento) { breakdown.push({ label: 'Requerer adiamento de incorporação', amparo: 'Art 103 RLSM', mult: multTaxa, amount: multTaxa * baseFee }); total += multTaxa * baseFee; }
 
-    // --- ISENÇÕES ---
+    // 7. ISENÇÕES
     const isExempt = exemption !== 'none';
     if (isExempt && total > 0) {
-      breakdown.push({
-        label: `Isenção por Impossibilidade de Pagamento`,
-        amparo: 'Art 225 RLSM',
-        mult: 0,
-        amount: -total
-      });
+      breakdown.push({ label: `Isenção por Impossibilidade de Pagamento`, amparo: 'Art 225 RLSM', mult: 0, amount: -total });
       total = 0;
     }
 
-    return {
-      breakdown,
-      total: Math.max(0, total),
-      isExempt,
-      hasItems: breakdown.length > 0
-    };
-  }, [baseFee, enlistmentStatus, multipleEnlistments, selectionStatus, refractoryYears, exarType, exarMissedYears, mfdvMissedRenewals, mfdvLateDiploma, lostDocs, taxRequests, exemption]);
+    return { breakdown, total: Math.max(0, total), isExempt, hasItems: breakdown.length > 0 };
+  }, [baseFee, rules, enlistmentStatus, multipleEnlistments, selectionStatus, refractoryYears, reserveCategory, exarMissedYears, missedConvocacao, missedResidencia, mfdvMissedRenewals, mfdvLateDiploma, lostDocs, taxRequests, exemption]);
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-800">
       <div className="mx-auto space-y-6">
         
-        {/* Header */}
+        {/* HEADER E CONFIGURAÇÕES */}
         <header className="bg-emerald-900 text-white rounded-xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Calculator className="w-6 h-6" />
-              Calculadora JSM (Fluxo Oficial)
+              Calculadora JSM (Decreto 12664/2025)
             </h1>
-            <p className="text-emerald-200 mt-1 text-sm">Geração de taxas e multas com base no RLSM, RCORE e LMFDV.</p>
+            <p className="text-emerald-200 mt-1 text-sm">Atualizada com as novas penalidades pecuniárias do RCORE.</p>
           </div>
-          <div className="flex flex-col items-start md:items-end w-full md:w-auto bg-emerald-950/50 p-3 rounded-lg border border-emerald-800">
-            <label className="text-xs text-emerald-300 mb-1 flex items-center gap-1 uppercase font-bold tracking-wider">
-              <Settings className="w-3 h-3" /> Valor da Taxa/Multa Base
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="text-emerald-400 font-bold">R$</span>
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            <button 
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-800 hover:bg-emerald-700 border border-emerald-600 rounded-lg text-sm font-bold transition-colors"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Regras e Multiplicadores {showSettings ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
+            </button>
+            <div className="bg-emerald-950/50 p-2 px-3 rounded-lg border border-emerald-800 flex items-center gap-2">
+              <label className="text-xs text-emerald-300 font-bold uppercase tracking-wider">Base (R$)</label>
               <input 
-                type="number" 
-                step="0.01"
-                value={baseFee}
-                onChange={(e) => setBaseFee(Number(e.target.value))}
-                className="w-24 px-2 py-1 bg-white rounded text-slate-900 font-bold outline-none focus:ring-2 focus:ring-emerald-500"
+                type="number" step="0.01" value={baseFee} onChange={(e) => setBaseFee(Number(e.target.value))}
+                className="w-20 px-2 py-1 bg-white rounded text-slate-900 font-bold outline-none"
               />
             </div>
           </div>
         </header>
+
+        {/* PAINEL DE CONFIGURAÇÕES DE REGRAS (EXPANSÍVEL) */}
+        {showSettings && (
+          <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500 animate-in fade-in slide-in-from-top-4">
+            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Settings className="w-5 h-5 text-emerald-600" /> Configuração de Multiplicadores (Padrões da Lei)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+              <div className="space-y-3 bg-slate-50 p-3 rounded border border-slate-200">
+                <h4 className="font-bold text-slate-600 border-b pb-1">Seleção e Alistamento</h4>
+                <div className="flex justify-between items-center"><label>Alistamento Atrasado</label><input type="number" value={rules.alistamentoAtraso} onChange={e => handleRuleChange('alistamentoAtraso', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+                <div className="flex justify-between items-center"><label>Refratário (1ª vez)</label><input type="number" value={rules.refratario1} onChange={e => handleRuleChange('refratario1', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+                <div className="flex justify-between items-center"><label>Refratário (2ª vez)</label><input type="number" value={rules.refratario2} onChange={e => handleRuleChange('refratario2', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+                <div className="flex justify-between items-center"><label>Refratário (3ª+ vez)</label><input type="number" value={rules.refratario3Mais} onChange={e => handleRuleChange('refratario3Mais', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+              </div>
+              <div className="space-y-3 bg-slate-50 p-3 rounded border border-slate-200">
+                <h4 className="font-bold text-slate-600 border-b pb-1">Reserva (Praças e Oficiais R/2)</h4>
+                <div className="flex justify-between items-center"><label>Falta EXAR</label><input type="number" value={rules.exarPracaR2} onChange={e => handleRuleChange('exarPracaR2', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+                <div className="flex justify-between items-center"><label>Falta Convocação</label><input type="number" value={rules.convocacaoPracaR2} onChange={e => handleRuleChange('convocacaoPracaR2', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+                <div className="flex justify-between items-center"><label>Não informou residência</label><input type="number" value={rules.residenciaPracaR2} onChange={e => handleRuleChange('residenciaPracaR2', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+                <div className="flex justify-between items-center"><label>Multa Padrão Extravio</label><input type="number" value={rules.extravio} onChange={e => handleRuleChange('extravio', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+              </div>
+              <div className="space-y-3 bg-purple-50 p-3 rounded border border-purple-200">
+                <h4 className="font-bold text-purple-800 border-b border-purple-200 pb-1">Reserva (Oficiais MFDV)</h4>
+                <div className="flex justify-between items-center"><label>Falta EXAR MFDV</label><input type="number" value={rules.exarMfdv} onChange={e => handleRuleChange('exarMfdv', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+                <div className="flex justify-between items-center"><label>Falta Convocação MFDV</label><input type="number" value={rules.convocacaoMfdv} onChange={e => handleRuleChange('convocacaoMfdv', e.target.value)} className="w-16 border rounded p-1 text-center text-red-600 font-bold" /></div>
+                <div className="flex justify-between items-center"><label>Não inf. residência MFDV</label><input type="number" value={rules.residenciaMfdv} onChange={e => handleRuleChange('residenciaMfdv', e.target.value)} className="w-16 border rounded p-1 text-center text-red-600 font-bold" /></div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
@@ -233,21 +234,12 @@ export default function App() {
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Ano de Nascimento</label>
                   <div className="flex items-center">
                     <Calendar className="w-5 h-5 text-slate-400 absolute ml-3" />
-                    <input 
-                      type="number" 
-                      value={birthYear}
-                      onChange={(e) => setBirthYear(e.target.value)}
-                      className="w-full pl-10 p-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none font-mono"
-                    />
+                    <input type="number" value={birthYear} onChange={(e) => setBirthYear(e.target.value)} className="w-full pl-10 p-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none font-mono" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Situação Financeira</label>
-                  <select 
-                    value={exemption}
-                    onChange={(e) => setExemption(e.target.value)}
-                    className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50"
-                  >
+                  <select value={exemption} onChange={(e) => setExemption(e.target.value)} className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50">
                     <option value="none">Capacidade de Pagamento Normal</option>
                     <option value="low_income">Comprovou Impossibilidade (Isento)</option>
                   </select>
@@ -256,37 +248,29 @@ export default function App() {
 
               <div className="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
                 <label className="block text-sm font-semibold text-slate-700">Como foi o Alistamento?</label>
-                <select 
-                  value={enlistmentStatus}
-                  onChange={(e) => setEnlistmentStatus(e.target.value)}
-                  className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
-                >
-                  <option value="on_time">No prazo correto (ou regularizado anteriormente sem novas multas neste item)</option>
-                  <option value="late">Fora do prazo legal (Multa 1x)</option>
+                <select value={enlistmentStatus} onChange={(e) => setEnlistmentStatus(e.target.value)} className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none">
+                  <option value="on_time">No prazo correto / Já regularizado sem novas multas</option>
+                  <option value="late">Fora do prazo legal (Atrasado)</option>
                 </select>
 
                 <label className="flex items-center gap-3 mt-2">
                   <input type="checkbox" checked={multipleEnlistments} onChange={(e) => setMultipleEnlistments(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded" />
-                  <span className="text-sm text-slate-700">Alistou-se mais de uma vez? <span className="text-xs text-red-600 font-mono">(Multa 3x)</span></span>
+                  <span className="text-sm text-slate-700">Alistou-se mais de uma vez?</span>
                 </label>
               </div>
             </section>
 
-            {/* Etapa 2: Seleção e EXAR */}
+            {/* Etapa 2 e 3: Seleção e Reserva (Reestruturado para o Decreto) */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
-                <ShieldAlert className="w-5 h-5" /> 2. Apresentações (Seleção e Reserva)
+                <ShieldAlert className="w-5 h-5" /> 2. Seleção Geral e Obrigações da Reserva
               </h2>
               
               <div className="space-y-6">
                 {/* Seleção */}
                 <div className="bg-amber-50/50 p-4 rounded-lg border border-amber-100">
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Comissão de Seleção (CS)</label>
-                  <select 
-                    value={selectionStatus}
-                    onChange={(e) => setSelectionStatus(e.target.value)}
-                    className="w-full p-2 border border-amber-200 rounded focus:ring-2 focus:ring-amber-500 outline-none mb-3"
-                  >
+                  <select value={selectionStatus} onChange={(e) => setSelectionStatus(e.target.value)} className="w-full p-2 border border-amber-200 rounded focus:ring-2 focus:ring-amber-500 outline-none mb-3">
                     <option value="ok">Compareceu normalmente ou dispensado</option>
                     <option value="missed">Faltou à Seleção (Cidadão Refratário)</option>
                   </select>
@@ -294,37 +278,58 @@ export default function App() {
                   {selectionStatus === 'missed' && (
                     <div className="flex items-center gap-3 p-3 bg-white rounded border border-amber-200">
                       <span className="text-sm text-slate-700 font-medium">Quantos anos faltou à CS?</span>
-                      <input 
-                        type="number" min="1" value={refractoryYears} onChange={(e) => setRefractoryYears(Number(e.target.value))}
-                        className="w-20 p-2 border border-amber-300 rounded text-center outline-none focus:border-amber-500 font-mono text-lg"
-                      />
-                      <span className="text-xs text-amber-700 flex-1 leading-tight">
-                        A 1ª vez conta 1x.<br/>Da 2ª vez em diante, 5x cada.
-                      </span>
+                      <input type="number" min="1" value={refractoryYears} onChange={(e) => setRefractoryYears(Number(e.target.value))} className="w-20 p-2 border border-amber-300 rounded text-center outline-none focus:border-amber-500 font-mono text-lg" />
                     </div>
                   )}
                 </div>
 
-                {/* EXAR */}
-                <div className="p-4 rounded-lg border border-slate-100">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Exercício de Apresentação da Reserva (EXAR)</label>
-                  <div className="flex items-center gap-3">
-                    <select value={exarType} onChange={(e) => setExarType(e.target.value)} className="p-2 border border-slate-300 rounded text-sm outline-none">
-                      <option value="praca">Praça (Multa 1x)</option>
-                      <option value="oficial">Oficial (Multa 5x)</option>
+                {/* Obrigações da Reserva (EXAR, Convocação, Endereço) */}
+                <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Categoria na Reserva</label>
+                    <select value={reserveCategory} onChange={(e) => setReserveCategory(e.target.value)} className="w-full p-2 border border-slate-300 rounded text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-700">
+                      <option value="praca_r2">Praça ou Oficial R/2 (Regra Geral)</option>
+                      <option value="oficial_mfdv">Oficial MFDV (Médico, Farmacêutico, Dentista, Vet)</option>
                     </select>
-                    <span className="text-sm text-slate-700">Faltou:</span>
-                    <input 
-                      type="number" min="0" value={exarMissedYears} onChange={(e) => setExarMissedYears(Number(e.target.value))}
-                      className="w-16 p-2 border border-slate-300 rounded text-center outline-none focus:border-emerald-500 font-mono"
-                    />
-                    <span className="text-sm text-slate-700">vez(es)</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-slate-700 font-medium flex-1">Faltou ao EXAR:</span>
+                      <input type="number" min="0" value={exarMissedYears} onChange={(e) => setExarMissedYears(Number(e.target.value))} className="w-16 p-2 border border-slate-300 rounded text-center outline-none focus:border-emerald-500 font-mono" />
+                      <span className="text-sm text-slate-500">vez(es)</span>
+                    </div>
+
+                    {reserveCategory === 'oficial_mfdv' && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-slate-700 font-medium flex-1">Não renovou adiamento:</span>
+                        <input type="number" min="0" value={mfdvMissedRenewals} onChange={(e) => setMfdvMissedRenewals(Number(e.target.value))} className="w-16 p-2 border border-slate-300 rounded text-center outline-none font-mono" />
+                        <span className="text-sm text-slate-500">ano(s)</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-100 p-2 rounded border border-transparent hover:border-slate-200">
+                      <input type="checkbox" checked={missedConvocacao} onChange={(e) => setMissedConvocacao(e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
+                      <span className="font-medium">Deixou de se apresentar quando convocado</span>
+                    </label>
+                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-100 p-2 rounded border border-transparent hover:border-slate-200">
+                      <input type="checkbox" checked={missedResidencia} onChange={(e) => setMissedResidencia(e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
+                      <span className="font-medium">Não comunicou mudança de residência (60 dias)</span>
+                    </label>
+                    {reserveCategory === 'oficial_mfdv' && (
+                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-100 p-2 rounded border border-transparent hover:border-slate-200">
+                       <input type="checkbox" checked={mfdvLateDiploma} onChange={(e) => setMfdvLateDiploma(e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
+                       <span className="font-medium">Atraso na apresentação de diploma ({'>'}60 dias)</span>
+                     </label>
+                    )}
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* Etapa 3: Documentos e Extravios */}
+            {/* Etapa 4: Documentos e Extravios */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
                 <FileText className="w-5 h-5" /> 3. Solicitações e Extravios de Documentos
@@ -333,7 +338,7 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Taxas */}
                 <div>
-                  <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3 bg-slate-100 p-2 rounded">Emissões (Taxa 1x)</h3>
+                  <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3 bg-slate-100 p-2 rounded">Emissões (Taxa Base)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
                       <input type="checkbox" checked={taxRequests.cdi} onChange={() => handleTaxToggle('cdi')} className="w-4 h-4 rounded text-emerald-600" />
@@ -352,7 +357,7 @@ export default function App() {
 
                 {/* Extravios */}
                 <div>
-                  <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded">Extravios (Multa 3x)</h3>
+                  <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded">Extravios (Multas)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
                       <input type="checkbox" checked={lostDocs.cam} onChange={() => handleLostDocsToggle('cam')} className="w-4 h-4 rounded text-red-600" />
@@ -378,7 +383,7 @@ export default function App() {
               
               <div className="bg-slate-800 text-white p-5">
                 <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Receipt className="w-6 h-6" /> Resumo de Atendimento JSM
+                  <Receipt className="w-6 h-6" /> Extrato de Recolhimento
                 </h2>
                 <p className="text-slate-300 text-sm mt-1">Cidadão nascido em {birthYear}</p>
               </div>
@@ -387,7 +392,7 @@ export default function App() {
                 {!calculations.hasItems ? (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
                     <CheckCircle2 className="w-12 h-12 text-slate-300" />
-                    <p className="text-center">Nenhuma taxa ou multa selecionada.<br/>Situação regularizada sem custos.</p>
+                    <p className="text-center">Nenhuma taxa ou multa selecionada.<br/>Situação regular sem custos.</p>
                   </div>
                 ) : (
                   <ul className="space-y-4">
@@ -402,7 +407,6 @@ export default function App() {
                           </span>
                         </div>
                         
-                        {/* Linha de Amparo Legal e Multiplicador */}
                         {item.amount >= 0 && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
@@ -424,7 +428,7 @@ export default function App() {
                   <div>
                     <span className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total a Pagar</span>
                     <span className="block text-xs text-slate-400 font-mono">
-                      (Total de {calculations.hasItems && !calculations.isExempt ? calculations.breakdown.reduce((acc, curr) => acc + curr.mult, 0) : 0}x taxas base)
+                      (Soma de {calculations.hasItems && !calculations.isExempt ? calculations.breakdown.reduce((acc, curr) => acc + curr.mult, 0) : 0} multiplicadores)
                     </span>
                   </div>
                   <span className={`text-3xl font-bold font-mono ${calculations.isExempt ? 'text-emerald-500' : 'text-slate-900'}`}>
