@@ -1,38 +1,64 @@
-import React, { useState, useMemo } from 'react';
-import { Calculator, AlertCircle, CheckCircle2, Receipt, Settings, User, FileText, ShieldAlert, Calendar, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Calculator, AlertCircle, CheckCircle2, Receipt, Settings, User, FileText, ShieldAlert, Calendar, SlidersHorizontal, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+
+// Extraímos as regras padrão para podermos usá-las tanto na inicialização quanto no botão de resetar
+const DEFAULT_RULES = {
+  alistamentoAtraso: { mult: 1, amparo: 'Art 176 RLSM' },
+  alistamentoMultiplo: { mult: 3, amparo: 'Art 44/177 RLSM' },
+  refratario1: { mult: 1, amparo: 'Art 176 RLSM' },
+  refratario2: { mult: 5, amparo: 'Art 178 RLSM' },
+  refratario3Mais: { mult: 5, amparo: 'Art 178 RLSM' },
+  exarPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
+  exarMfdv: { mult: 5, amparo: 'Art. 52/58 LMFDV' },
+  convocacaoPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
+  convocacaoMfdv: { mult: 15, amparo: 'Art. 60(a) LMFDV' },
+  residenciaPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
+  residenciaMfdv: { mult: 15, amparo: 'Art. 60(b) LMFDV' },
+  mfdvAdiamento: { mult: 1, amparo: 'Art 73-75 RLMFDV' },
+  mfdvDiploma: { mult: 5, amparo: 'Art 58 LMFDV' },
+  extravioCam: { mult: 3, amparo: 'Art 177 RLSM' },
+  extravioCrCsm: { mult: 3, amparo: 'Art 177 RLSM' },
+  extravioCdiCiCdsa: { mult: 3, amparo: 'Art 177 RLSM' },
+  taxaCdi: { mult: 1, amparo: 'Art 107 RLSM' },
+  taxaCdsa: { mult: 1, amparo: 'Art 43 RLPSA' },
+  taxaAdiamento: { mult: 1, amparo: 'Art 103 RLSM' }
+};
+
+const DEFAULT_BASE_FEE = 6.46;
 
 export default function App() {
-  // --- CONFIGURAÇÕES BASE E REGRAS DINÂMICAS ---
-  const [baseFee, setBaseFee] = useState(6.46);
+  // --- CONFIGURAÇÕES BASE E REGRAS DINÂMICAS (COM LOCALSTORAGE) ---
   const [showSettings, setShowSettings] = useState(false);
 
-  // Regras agora armazenam o multiplicador e o amparo legal
-  const [rules, setRules] = useState({
-    // Alistamento e Seleção
-    alistamentoAtraso: { mult: 1, amparo: 'Art 176 RLSM' },
-    alistamentoMultiplo: { mult: 3, amparo: 'Art 44/177 RLSM' },
-    refratario1: { mult: 1, amparo: 'Art 176 RLSM' },
-    refratario2: { mult: 5, amparo: 'Art 178 RLSM' },
-    refratario3Mais: { mult: 5, amparo: 'Art 178 RLSM' },
-    // EXAR e Reserva
-    exarPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
-    exarMfdv: { mult: 5, amparo: 'Art. 52/58 LMFDV' },
-    convocacaoPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
-    convocacaoMfdv: { mult: 15, amparo: 'Art. 60(a) LMFDV' },
-    residenciaPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
-    residenciaMfdv: { mult: 15, amparo: 'Art. 60(b) LMFDV' },
-    // MFDV Específico
-    mfdvAdiamento: { mult: 1, amparo: 'Art 73-75 RLMFDV' },
-    mfdvDiploma: { mult: 5, amparo: 'Art 58 LMFDV' },
-    // Extravios
-    extravioCam: { mult: 3, amparo: 'Art 177 RLSM' },
-    extravioCrCsm: { mult: 3, amparo: 'Art 177 RLSM' },
-    extravioCdiCiCdsa: { mult: 3, amparo: 'Art 177 RLSM' },
-    // Taxas
-    taxaCdi: { mult: 1, amparo: 'Art 107 RLSM' },
-    taxaCdsa: { mult: 1, amparo: 'Art 43 RLPSA' },
-    taxaAdiamento: { mult: 1, amparo: 'Art 103 RLSM' }
+  // Inicializa a taxa base lendo do localStorage, se não existir, usa o padrão
+  const [baseFee, setBaseFee] = useState(() => {
+    const saved = localStorage.getItem('jsm_baseFee');
+    return saved !== null ? parseFloat(saved) : DEFAULT_BASE_FEE;
   });
+
+  // Inicializa as regras lendo do localStorage, se não existir ou der erro, usa as padrão
+  const [rules, setRules] = useState(() => {
+    const saved = localStorage.getItem('jsm_rules');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Erro ao carregar regras salvas", e);
+        return DEFAULT_RULES;
+      }
+    }
+    return DEFAULT_RULES;
+  });
+
+  // Salva a taxa base no localStorage sempre que ela mudar
+  useEffect(() => {
+    localStorage.setItem('jsm_baseFee', baseFee.toString());
+  }, [baseFee]);
+
+  // Salva as regras no localStorage sempre que elas mudarem
+  useEffect(() => {
+    localStorage.setItem('jsm_rules', JSON.stringify(rules));
+  }, [rules]);
 
   const handleRuleChange = (key, field, value) => {
     setRules(prev => ({
@@ -42,6 +68,13 @@ export default function App() {
         [field]: field === 'mult' ? Number(value) : value
       }
     }));
+  };
+
+  const handleResetRules = () => {
+    if (window.confirm('Tem certeza que deseja restaurar todos os multiplicadores e amparos para os valores originais da lei?')) {
+      setRules(DEFAULT_RULES);
+      setBaseFee(DEFAULT_BASE_FEE);
+    }
   };
 
   // --- ESTADOS DO FORMULÁRIO DO CIDADÃO ---
@@ -201,7 +234,7 @@ export default function App() {
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-800 hover:bg-emerald-700 border border-emerald-600 rounded-lg text-sm font-bold transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-800 hover:bg-emerald-700 border border-emerald-600 rounded-lg text-sm font-bold transition-colors"
             >
               <SlidersHorizontal className="w-4 h-4" />
               Regras e Multiplicadores {showSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -219,9 +252,17 @@ export default function App() {
         {/* PAINEL DE CONFIGURAÇÕES DE REGRAS */}
         {showSettings && (
           <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500 animate-in fade-in slide-in-from-top-4">
-            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <Settings className="w-5 h-5 text-emerald-600" /> Configuração de Multiplicadores e Amparo Legal
-            </h3>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-emerald-600" /> Configuração de Multiplicadores e Amparo Legal
+              </h3>
+              <button 
+                onClick={handleResetRules}
+                className="flex items-center gap-2 text-sm text-slate-600 hover:text-emerald-700 bg-slate-100 hover:bg-emerald-50 px-3 py-1.5 rounded transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" /> Restaurar Padrões
+              </button>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div className="bg-slate-50 p-3 rounded border border-slate-200">
@@ -259,6 +300,9 @@ export default function App() {
                 {renderRuleInput('Extravio CDI/CI/CDSA', 'extravioCdiCiCdsa')}
               </div>
             </div>
+            <p className="text-xs text-emerald-600 mt-4 font-medium flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" /> Suas alterações são salvas automaticamente neste navegador.
+            </p>
           </div>
         )}
 
@@ -385,15 +429,15 @@ export default function App() {
                   <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3 bg-slate-100 p-2 rounded">Emissões (Taxa Base)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="radio" name="taxRequest" checked={taxRequests.cdi} onChange={() => setTaxRequests({ cdi: true, cdsa: false, adiamento: false })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.cdi} onChange={(e) => setTaxRequests({ ...taxRequests, cdi: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CDI (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="radio" name="taxRequest" checked={taxRequests.cdsa} onChange={() => setTaxRequests({ cdi: false, cdsa: true, adiamento: false })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.cdsa} onChange={(e) => setTaxRequests({ ...taxRequests, cdsa: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CDSA (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="radio" name="taxRequest" checked={taxRequests.adiamento} onChange={() => setTaxRequests({ cdi: false, cdsa: false, adiamento: true })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.adiamento} onChange={(e) => setTaxRequests({ ...taxRequests, adiamento: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer Adiamento de Incorporação
                     </label>
                   </div>
@@ -404,15 +448,15 @@ export default function App() {
                   <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded">Extravios (Multas)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="radio" name="lostDoc" checked={lostDocs.cam} onChange={() => setLostDocs({ cam: true, cr_csm: false, cdi_ci_cdsa: false })} className="w-4 h-4 rounded text-red-600" />
+                      <input type="checkbox" checked={lostDocs.cam} onChange={(e) => setLostDocs({ ...lostDocs, cam: e.target.checked })} className="w-4 h-4 rounded text-red-600" />
                       Extravio do CAM
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="radio" name="lostDoc" checked={lostDocs.cr_csm} onChange={() => setLostDocs({ cam: false, cr_csm: true, cdi_ci_cdsa: false })} className="w-4 h-4 rounded text-red-600" />
+                      <input type="checkbox" checked={lostDocs.cr_csm} onChange={(e) => setLostDocs({ ...lostDocs, cr_csm: e.target.checked })} className="w-4 h-4 rounded text-red-600" />
                       Extravio do CR ou CSM
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="radio" name="lostDoc" checked={lostDocs.cdi_ci_cdsa} onChange={() => setLostDocs({ cam: false, cr_csm: false, cdi_ci_cdsa: true })} className="w-4 h-4 rounded text-red-600" />
+                      <input type="checkbox" checked={lostDocs.cdi_ci_cdsa} onChange={(e) => setLostDocs({ ...lostDocs, cdi_ci_cdsa: e.target.checked })} className="w-4 h-4 rounded text-red-600" />
                       Extravio do CDI, CI ou CDSA
                     </label>
                   </div>
