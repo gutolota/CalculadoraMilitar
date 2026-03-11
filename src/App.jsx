@@ -6,31 +6,42 @@ export default function App() {
   const [baseFee, setBaseFee] = useState(6.46);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Todas as regras e multiplicadores agora são editáveis
+  // Regras agora armazenam o multiplicador e o amparo legal
   const [rules, setRules] = useState({
     // Alistamento e Seleção
-    alistamentoAtraso: 1,
-    alistamentoMultiplo: 3,
-    refratario1: 1,
-    refratario2: 5,
-    refratario3Mais: 5,
-    // EXAR e Reserva (Atualizado Decreto 12664/2025 RCORE)
-    exarPracaR2: 3,
-    exarMfdv: 5,
-    convocacaoPracaR2: 3,
-    convocacaoMfdv: 15,
-    residenciaPracaR2: 3,
-    residenciaMfdv: 15,
-    // Extravios e Taxas
-    extravio: 3,
-    taxaEmissao: 1,
+    alistamentoAtraso: { mult: 1, amparo: 'Art 176 RLSM' },
+    alistamentoMultiplo: { mult: 3, amparo: 'Art 44/177 RLSM' },
+    refratario1: { mult: 1, amparo: 'Art 176 RLSM' },
+    refratario2: { mult: 5, amparo: 'Art 178 RLSM' },
+    refratario3Mais: { mult: 5, amparo: 'Art 178 RLSM' },
+    // EXAR e Reserva
+    exarPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
+    exarMfdv: { mult: 5, amparo: 'Art. 52/58 LMFDV' },
+    convocacaoPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
+    convocacaoMfdv: { mult: 15, amparo: 'Art. 60(a) LMFDV' },
+    residenciaPracaR2: { mult: 3, amparo: 'Art. 47 LSM / Art. 177 RLSM' },
+    residenciaMfdv: { mult: 15, amparo: 'Art. 60(b) LMFDV' },
     // MFDV Específico
-    mfdvAdiamento: 1,
-    mfdvDiploma: 5
+    mfdvAdiamento: { mult: 1, amparo: 'Art 73-75 RLMFDV' },
+    mfdvDiploma: { mult: 5, amparo: 'Art 58 LMFDV' },
+    // Extravios
+    extravioCam: { mult: 3, amparo: 'Art 177 RLSM' },
+    extravioCrCsm: { mult: 3, amparo: 'Art 177 RLSM' },
+    extravioCdiCiCdsa: { mult: 3, amparo: 'Art 177 RLSM' },
+    // Taxas
+    taxaCdi: { mult: 1, amparo: 'Art 107 RLSM' },
+    taxaCdsa: { mult: 1, amparo: 'Art 43 RLPSA' },
+    taxaAdiamento: { mult: 1, amparo: 'Art 103 RLSM' }
   });
 
-  const handleRuleChange = (key, value) => {
-    setRules(prev => ({ ...prev, [key]: Number(value) }));
+  const handleRuleChange = (key, field, value) => {
+    setRules(prev => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        [field]: field === 'mult' ? Number(value) : value
+      }
+    }));
   };
 
   // --- ESTADOS DO FORMULÁRIO DO CIDADÃO ---
@@ -44,7 +55,7 @@ export default function App() {
   const [refractoryYears, setRefractoryYears] = useState(2);
 
   // Reserva e MFDV (Agrupados)
-  const [reserveCategory, setReserveCategory] = useState('praca_r2'); // 'praca_r2' | 'oficial_mfdv'
+  const [reserveCategory, setReserveCategory] = useState('praca_r2'); 
   const [exarMissedYears, setExarMissedYears] = useState(0);
   const [missedConvocacao, setMissedConvocacao] = useState(false);
   const [missedResidencia, setMissedResidencia] = useState(false);
@@ -55,10 +66,6 @@ export default function App() {
   const [taxRequests, setTaxRequests] = useState({ cdi: false, cdsa: false, adiamento: false });
   const [lostDocs, setLostDocs] = useState({ cam: false, cr_csm: false, cdi_ci_cdsa: false });
 
-  // Toggle helpers
-  const handleTaxToggle = (key) => setTaxRequests(prev => ({ ...prev, [key]: !prev[key] }));
-  const handleLostDocsToggle = (key) => setLostDocs(prev => ({ ...prev, [key]: !prev[key] }));
-
   // --- MOTOR DE CÁLCULO ---
   const calculations = useMemo(() => {
     let breakdown = [];
@@ -66,85 +73,84 @@ export default function App() {
 
     // 1. ALISTAMENTO
     if (enlistmentStatus === 'late') {
-      const mult = rules.alistamentoAtraso;
-      breakdown.push({ label: 'Apresentar-se fora do prazo para alistamento', amparo: 'Art 176 RLSM', mult, amount: mult * baseFee });
-      total += mult * baseFee;
+      const rule = rules.alistamentoAtraso;
+      breakdown.push({ label: 'Apresentar-se fora do prazo para alistamento', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee });
+      total += rule.mult * baseFee;
     }
     if (multipleEnlistments) {
-      const mult = rules.alistamentoMultiplo;
-      breakdown.push({ label: 'Alistar-se mais de uma vez', amparo: 'Art 44/177 RLSM', mult, amount: mult * baseFee });
-      total += mult * baseFee;
+      const rule = rules.alistamentoMultiplo;
+      breakdown.push({ label: 'Alistar-se mais de uma vez', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee });
+      total += rule.mult * baseFee;
     }
 
     // 2. SELEÇÃO (REFRATÁRIO)
     if (selectionStatus === 'missed' && refractoryYears > 0) {
       if (refractoryYears >= 1) {
-        breakdown.push({ label: 'Faltar à CS pela 1ª vez (Refratário)', amparo: 'Art 176 RLSM', mult: rules.refratario1, amount: rules.refratario1 * baseFee });
-        total += rules.refratario1 * baseFee;
+        const rule = rules.refratario1;
+        breakdown.push({ label: 'Faltar à CS pela 1ª vez (Refratário)', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee });
+        total += rule.mult * baseFee;
       }
       if (refractoryYears >= 2) {
-        breakdown.push({ label: 'Faltar à CS pela 2ª vez (Refratário)', amparo: 'Art 178 RLSM', mult: rules.refratario2, amount: rules.refratario2 * baseFee });
-        total += rules.refratario2 * baseFee;
+        const rule = rules.refratario2;
+        breakdown.push({ label: 'Faltar à CS pela 2ª vez (Refratário)', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee });
+        total += rule.mult * baseFee;
       }
       if (refractoryYears >= 3) {
         const extraYears = refractoryYears - 2;
-        const mult = extraYears * rules.refratario3Mais;
-        breakdown.push({ label: `Faltar à CS após a 2ª vez (${extraYears}x)`, amparo: 'Art 178 RLSM', mult, amount: mult * baseFee });
+        const rule = rules.refratario3Mais;
+        const mult = extraYears * rule.mult;
+        breakdown.push({ label: `Faltar à CS após a 2ª vez (${extraYears}x)`, amparo: rule.amparo, mult, amount: mult * baseFee });
         total += mult * baseFee;
       }
     }
 
-    // 3. OBRIGAÇÕES DA RESERVA E ATUALIZAÇÕES (Novo Decreto RCORE)
+    // 3. OBRIGAÇÕES DA RESERVA E ATUALIZAÇÕES
     const isMfdv = reserveCategory === 'oficial_mfdv';
 
     if (exarMissedYears > 0) {
-      const multBase = isMfdv ? rules.exarMfdv : rules.exarPracaR2;
-      const amparo = isMfdv ? 'Art. 52/58 LMFDV' : 'Art. 47 LSM / Art. 177 RLSM';
-      const multTotal = exarMissedYears * multBase;
+      const rule = isMfdv ? rules.exarMfdv : rules.exarPracaR2;
+      const multTotal = exarMissedYears * rule.mult;
       breakdown.push({
         label: `Falta EXAR (${exarMissedYears}x - ${isMfdv ? 'Oficiais MFDV' : 'Praças/Oficiais R/2'})`,
-        amparo, mult: multTotal, amount: multTotal * baseFee
+        amparo: rule.amparo, mult: multTotal, amount: multTotal * baseFee
       });
       total += multTotal * baseFee;
     }
 
     if (missedConvocacao) {
-      const mult = isMfdv ? rules.convocacaoMfdv : rules.convocacaoPracaR2;
-      const amparo = isMfdv ? 'Art. 60(a) LMFDV' : 'Art. 47 LSM / Art. 177 RLSM';
-      breakdown.push({ label: 'Falta à Convocação', amparo, mult, amount: mult * baseFee });
-      total += mult * baseFee;
+      const rule = isMfdv ? rules.convocacaoMfdv : rules.convocacaoPracaR2;
+      breakdown.push({ label: 'Falta à Convocação', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee });
+      total += rule.mult * baseFee;
     }
 
     if (missedResidencia) {
-      const mult = isMfdv ? rules.residenciaMfdv : rules.residenciaPracaR2;
-      const amparo = isMfdv ? 'Art. 60(b) LMFDV' : 'Art. 47 LSM / Art. 177 RLSM';
-      breakdown.push({ label: 'Não comunicou mudança de residência (60 dias)', amparo, mult, amount: mult * baseFee });
-      total += mult * baseFee;
+      const rule = isMfdv ? rules.residenciaMfdv : rules.residenciaPracaR2;
+      breakdown.push({ label: 'Não comunicou mudança de residência (60 dias)', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee });
+      total += rule.mult * baseFee;
     }
 
-    // 4. MFDV ESPECÍFICOS (Adiamento e Diploma)
+    // 4. MFDV ESPECÍFICOS
     if (mfdvMissedRenewals > 0) {
-      const mult = mfdvMissedRenewals * rules.mfdvAdiamento;
-      breakdown.push({ label: `Deixar de renovar adiamento (${mfdvMissedRenewals}x)`, amparo: 'Art 73-75 RLMFDV', mult, amount: mult * baseFee });
+      const rule = rules.mfdvAdiamento;
+      const mult = mfdvMissedRenewals * rule.mult;
+      breakdown.push({ label: `Deixar de renovar adiamento (${mfdvMissedRenewals}x)`, amparo: rule.amparo, mult, amount: mult * baseFee });
       total += mult * baseFee;
     }
     if (mfdvLateDiploma) {
-      const mult = rules.mfdvDiploma;
-      breakdown.push({ label: 'Atraso apresentação diploma (>60 dias)', amparo: 'Art 58 LMFDV', mult, amount: mult * baseFee });
-      total += mult * baseFee;
+      const rule = rules.mfdvDiploma;
+      breakdown.push({ label: 'Atraso apresentação diploma (>60 dias)', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee });
+      total += rule.mult * baseFee;
     }
 
-    // 5. EXTRAVIOS (Multa 3x editável)
-    const multExtravio = rules.extravio;
-    if (lostDocs.cam) { breakdown.push({ label: 'Extravio/Inutilização do CAM', amparo: 'Art 177 RLSM', mult: multExtravio, amount: multExtravio * baseFee }); total += multExtravio * baseFee; }
-    if (lostDocs.cr_csm) { breakdown.push({ label: 'Extravio/Inutilização do CR/CSM', amparo: 'Art 177 RLSM', mult: multExtravio, amount: multExtravio * baseFee }); total += multExtravio * baseFee; }
-    if (lostDocs.cdi_ci_cdsa) { breakdown.push({ label: 'Extravio do CDI, CI ou CDSA', amparo: 'Art 177 RLSM', mult: multExtravio, amount: multExtravio * baseFee }); total += multExtravio * baseFee; }
+    // 5. EXTRAVIOS
+    if (lostDocs.cam) { const rule = rules.extravioCam; breakdown.push({ label: 'Extravio/Inutilização do CAM', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
+    if (lostDocs.cr_csm) { const rule = rules.extravioCrCsm; breakdown.push({ label: 'Extravio/Inutilização do CR/CSM', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
+    if (lostDocs.cdi_ci_cdsa) { const rule = rules.extravioCdiCiCdsa; breakdown.push({ label: 'Extravio do CDI, CI ou CDSA', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
 
-    // 6. TAXAS (1x editável)
-    const multTaxa = rules.taxaEmissao;
-    if (taxRequests.cdi) { breakdown.push({ label: 'Requerer CDI', amparo: 'Art 107 RLSM', mult: multTaxa, amount: multTaxa * baseFee }); total += multTaxa * baseFee; }
-    if (taxRequests.cdsa) { breakdown.push({ label: 'Requerer CDSA', amparo: 'Art 43 RLPSA', mult: multTaxa, amount: multTaxa * baseFee }); total += multTaxa * baseFee; }
-    if (taxRequests.adiamento) { breakdown.push({ label: 'Requerer adiamento de incorporação', amparo: 'Art 103 RLSM', mult: multTaxa, amount: multTaxa * baseFee }); total += multTaxa * baseFee; }
+    // 6. TAXAS
+    if (taxRequests.cdi) { const rule = rules.taxaCdi; breakdown.push({ label: 'Requerer CDI', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
+    if (taxRequests.cdsa) { const rule = rules.taxaCdsa; breakdown.push({ label: 'Requerer CDSA', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
+    if (taxRequests.adiamento) { const rule = rules.taxaAdiamento; breakdown.push({ label: 'Requerer adiamento de incorporação', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
 
     // 7. ISENÇÕES
     const isExempt = exemption !== 'none';
@@ -155,6 +161,29 @@ export default function App() {
 
     return { breakdown, total: Math.max(0, total), isExempt, hasItems: breakdown.length > 0 };
   }, [baseFee, rules, enlistmentStatus, multipleEnlistments, selectionStatus, refractoryYears, reserveCategory, exarMissedYears, missedConvocacao, missedResidencia, mfdvMissedRenewals, mfdvLateDiploma, lostDocs, taxRequests, exemption]);
+
+  // Função auxiliar para renderizar os inputs de configuração
+  const renderRuleInput = (label, key) => (
+    <div className="flex flex-col gap-1 mb-3 border-b border-slate-200/60 pb-2 last:border-0 last:mb-0 last:pb-0">
+      <label className="text-xs font-semibold text-slate-700">{label}</label>
+      <div className="flex gap-2">
+        <input
+          type="number"
+          value={rules[key].mult}
+          onChange={e => handleRuleChange(key, 'mult', e.target.value)}
+          className="w-16 border border-slate-300 rounded p-1 text-center text-sm focus:ring-1 focus:ring-emerald-500 outline-none"
+          title="Multiplicador (Qtd. vezes)"
+        />
+        <input
+          type="text"
+          value={rules[key].amparo}
+          onChange={e => handleRuleChange(key, 'amparo', e.target.value)}
+          className="flex-1 border border-slate-300 rounded p-1 text-sm focus:ring-1 focus:ring-emerald-500 outline-none text-slate-600"
+          title="Amparo Legal"
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-800">
@@ -187,32 +216,47 @@ export default function App() {
           </div>
         </header>
 
-        {/* PAINEL DE CONFIGURAÇÕES DE REGRAS (EXPANSÍVEL) */}
+        {/* PAINEL DE CONFIGURAÇÕES DE REGRAS */}
         {showSettings && (
           <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500 animate-in fade-in slide-in-from-top-4">
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <Settings className="w-5 h-5 text-emerald-600" /> Configuração de Multiplicadores (Padrões da Lei)
+              <Settings className="w-5 h-5 text-emerald-600" /> Configuração de Multiplicadores e Amparo Legal
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-              <div className="space-y-3 bg-slate-50 p-3 rounded border border-slate-200">
-                <h4 className="font-bold text-slate-600 border-b pb-1">Seleção e Alistamento</h4>
-                <div className="flex justify-between items-center"><label>Alistamento Atrasado</label><input type="number" value={rules.alistamentoAtraso} onChange={e => handleRuleChange('alistamentoAtraso', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
-                <div className="flex justify-between items-center"><label>Refratário (1ª vez)</label><input type="number" value={rules.refratario1} onChange={e => handleRuleChange('refratario1', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
-                <div className="flex justify-between items-center"><label>Refratário (2ª vez)</label><input type="number" value={rules.refratario2} onChange={e => handleRuleChange('refratario2', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
-                <div className="flex justify-between items-center"><label>Refratário (3ª+ vez)</label><input type="number" value={rules.refratario3Mais} onChange={e => handleRuleChange('refratario3Mais', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+              <div className="bg-slate-50 p-3 rounded border border-slate-200">
+                <h4 className="font-bold text-slate-700 mb-3 border-b pb-1">Alistamento & Seleção</h4>
+                {renderRuleInput('Atraso Alistamento', 'alistamentoAtraso')}
+                {renderRuleInput('Alist. Múltiplo', 'alistamentoMultiplo')}
+                {renderRuleInput('Refratário (1ª vez)', 'refratario1')}
+                {renderRuleInput('Refratário (2ª vez)', 'refratario2')}
+                {renderRuleInput('Refratário (3ª+ vez)', 'refratario3Mais')}
               </div>
-              <div className="space-y-3 bg-slate-50 p-3 rounded border border-slate-200">
-                <h4 className="font-bold text-slate-600 border-b pb-1">Reserva (Praças e Oficiais R/2)</h4>
-                <div className="flex justify-between items-center"><label>Falta EXAR</label><input type="number" value={rules.exarPracaR2} onChange={e => handleRuleChange('exarPracaR2', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
-                <div className="flex justify-between items-center"><label>Falta Convocação</label><input type="number" value={rules.convocacaoPracaR2} onChange={e => handleRuleChange('convocacaoPracaR2', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
-                <div className="flex justify-between items-center"><label>Não informou residência</label><input type="number" value={rules.residenciaPracaR2} onChange={e => handleRuleChange('residenciaPracaR2', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
-                <div className="flex justify-between items-center"><label>Multa Padrão Extravio</label><input type="number" value={rules.extravio} onChange={e => handleRuleChange('extravio', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
+              
+              <div className="bg-slate-50 p-3 rounded border border-slate-200">
+                <h4 className="font-bold text-slate-700 mb-3 border-b pb-1">Reserva (Praças/R2)</h4>
+                {renderRuleInput('Falta EXAR', 'exarPracaR2')}
+                {renderRuleInput('Falta Convocação', 'convocacaoPracaR2')}
+                {renderRuleInput('Omissão Residência', 'residenciaPracaR2')}
               </div>
-              <div className="space-y-3 bg-purple-50 p-3 rounded border border-purple-200">
-                <h4 className="font-bold text-purple-800 border-b border-purple-200 pb-1">Reserva (Oficiais MFDV)</h4>
-                <div className="flex justify-between items-center"><label>Falta EXAR MFDV</label><input type="number" value={rules.exarMfdv} onChange={e => handleRuleChange('exarMfdv', e.target.value)} className="w-16 border rounded p-1 text-center" /></div>
-                <div className="flex justify-between items-center"><label>Falta Convocação MFDV</label><input type="number" value={rules.convocacaoMfdv} onChange={e => handleRuleChange('convocacaoMfdv', e.target.value)} className="w-16 border rounded p-1 text-center text-red-600 font-bold" /></div>
-                <div className="flex justify-between items-center"><label>Não inf. residência MFDV</label><input type="number" value={rules.residenciaMfdv} onChange={e => handleRuleChange('residenciaMfdv', e.target.value)} className="w-16 border rounded p-1 text-center text-red-600 font-bold" /></div>
+              
+              <div className="bg-purple-50 p-3 rounded border border-purple-200">
+                <h4 className="font-bold text-purple-800 mb-3 border-b border-purple-200 pb-1">Reserva (MFDV)</h4>
+                {renderRuleInput('Falta EXAR MFDV', 'exarMfdv')}
+                {renderRuleInput('Falta Convocação MFDV', 'convocacaoMfdv')}
+                {renderRuleInput('Omissão Res. MFDV', 'residenciaMfdv')}
+                {renderRuleInput('Falta Renov. Adiamento', 'mfdvAdiamento')}
+                {renderRuleInput('Atraso Diploma', 'mfdvDiploma')}
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded border border-slate-200">
+                <h4 className="font-bold text-slate-700 mb-3 border-b pb-1">Taxas & Extravios</h4>
+                {renderRuleInput('Taxa CDI', 'taxaCdi')}
+                {renderRuleInput('Taxa CDSA', 'taxaCdsa')}
+                {renderRuleInput('Taxa Adiamento', 'taxaAdiamento')}
+                {renderRuleInput('Extravio CAM', 'extravioCam')}
+                {renderRuleInput('Extravio CR/CSM', 'extravioCrCsm')}
+                {renderRuleInput('Extravio CDI/CI/CDSA', 'extravioCdiCiCdsa')}
               </div>
             </div>
           </div>
@@ -260,7 +304,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* Etapa 2 e 3: Seleção e Reserva (Reestruturado para o Decreto) */}
+            {/* Etapa 2 e 3: Seleção e Reserva */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
                 <ShieldAlert className="w-5 h-5" /> 2. Seleção Geral e Obrigações da Reserva
@@ -283,7 +327,7 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Obrigações da Reserva (EXAR, Convocação, Endereço) */}
+                {/* Obrigações da Reserva */}
                 <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Categoria na Reserva</label>
