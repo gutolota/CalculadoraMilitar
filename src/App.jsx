@@ -275,7 +275,7 @@ export default function App() {
               </div>
               
               <div className="bg-slate-50 p-3 rounded border border-slate-200">
-                <h4 className="font-bold text-slate-700 mb-3 border-b pb-1">Reserva (Praças/R2)</h4>
+                <h4 className="font-bold text-slate-700 mb-3 border-b pb-1">Reserva (Oficiais R2/Praças)</h4>
                 {renderRuleInput('Falta EXAR', 'exarPracaR2')}
                 {renderRuleInput('Falta Convocação', 'convocacaoPracaR2')}
                 {renderRuleInput('Omissão Residência', 'residenciaPracaR2')}
