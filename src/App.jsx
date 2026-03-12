@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 
 // Importando as duas versões da calculadora
 import CalculatorV1 from './pages/CalculatorV1';
@@ -30,7 +30,7 @@ function Navigation() {
 export default function App() {
   return (
     // O atributo basename DEVE ser exatamente igual ao 'base' do seu vite.config.js
-    <BrowserRouter basename="/CalculadoraMilitar">
+    <HashRouter basename="/CalculadoraMilitar">
       <div className="min-h-screen bg-slate-100 flex flex-col">
         {/* Barra de navegação visível em todas as telas */}
         <Navigation />
@@ -53,6 +53,6 @@ export default function App() {
           </Routes>
         </main>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
