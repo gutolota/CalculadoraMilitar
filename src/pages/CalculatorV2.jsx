@@ -88,7 +88,7 @@ export default function App() {
   const [refractoryYears, setRefractoryYears] = useState(0);
 
   // Reserva e MFDV
-  const [reserveCategory, setReserveCategory] = useState('praca_r2'); 
+  const [reserveCategory, setReserveCategory] = useState('praca_r2');
   const [exarMissedYears, setExarMissedYears] = useState(0);
   const [missedConvocacao, setMissedConvocacao] = useState(false);
   const [missedResidencia, setMissedResidencia] = useState(false);
@@ -107,7 +107,7 @@ export default function App() {
     const currentYear = new Date().getFullYear();
     // A falta começa a contar a partir da idade de alistamento (18 anos)
     const anosPassados = (currentYear - birthYear) - 18;
-    
+
     if (anosPassados > 0) {
       setRefractoryYears(Math.min(10, anosPassados));
     } else {
@@ -244,6 +244,23 @@ export default function App() {
       </div>
     );
   };
+  const handleTaxToggle = (key, isChecked) => {
+    if (isChecked) {
+      // Zera todas as taxas e ativa apenas a que foi clicada
+      setTaxRequests({
+        cdi: false,
+        cdsa: false,
+        ci: false,
+        cr: false,
+        csm: false,
+        adiamento: false,
+        [key]: true
+      });
+    } else {
+      // Se está desmarcando, apenas altera a atual para false
+      setTaxRequests(prev => ({ ...prev, [key]: false }));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-800">
@@ -283,14 +300,14 @@ export default function App() {
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-emerald-600" /> Configuração de Multiplicadores e Amparo Legal
               </h3>
-              <button 
+              <button
                 onClick={handleResetRules}
                 className="flex items-center gap-2 text-sm text-slate-600 hover:text-emerald-700 bg-slate-100 hover:bg-emerald-50 px-3 py-1.5 rounded transition-colors"
               >
                 <RefreshCw className="w-4 h-4" /> Restaurar Padrões
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div className="bg-slate-50 p-3 rounded border border-slate-200">
                 <h4 className="font-bold text-slate-700 mb-3 border-b pb-1">Alistamento & Seleção</h4>
@@ -300,14 +317,14 @@ export default function App() {
                 {renderRuleInput('Faltar a CS 2ª vez', 'refratario2')}
                 {renderRuleInput('Faltar a CS 3ª+ vezes', 'refratario3Mais')}
               </div>
-              
+
               <div className="bg-slate-50 p-3 rounded border border-slate-200">
                 <h4 className="font-bold text-slate-700 mb-3 border-b pb-1">Reserva (Oficiais R2/Praças)</h4>
                 {renderRuleInput('Falta EXAR', 'exarPracaR2')}
                 {renderRuleInput('Falta Convocação', 'convocacaoPracaR2')}
                 {renderRuleInput('Omissão Residência', 'residenciaPracaR2')}
               </div>
-              
+
               <div className="bg-purple-50 p-3 rounded border border-purple-200">
                 <h4 className="font-bold text-purple-800 mb-3 border-b border-purple-200 pb-1">Reserva (MFDV)</h4>
                 {renderRuleInput('Falta EXAR MFDV', 'exarMfdv')}
@@ -393,17 +410,17 @@ export default function App() {
                     <div className="p-3 bg-white rounded border border-amber-200 space-y-3">
                       <div className="flex items-center gap-3">
                         <span className="text-sm text-slate-700 font-medium">Quantos anos faltou à CS?</span>
-                        <input 
-                          type="number" 
-                          min="1" 
+                        <input
+                          type="number"
+                          min="1"
                           max="10"
-                          value={refractoryYears} 
+                          value={refractoryYears}
                           onChange={(e) => {
                             const val = Number(e.target.value);
                             // Garante que a inserção manual fique sempre entre 1 e 10
                             setRefractoryYears(Math.max(1, Math.min(10, val)));
-                          }} 
-                          className="w-20 p-2 border border-amber-300 rounded text-center outline-none focus:border-amber-500 font-mono text-lg" 
+                          }}
+                          className="w-20 p-2 border border-amber-300 rounded text-center outline-none focus:border-amber-500 font-mono text-lg"
                         />
                       </div>
                       <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded">
@@ -470,9 +487,9 @@ export default function App() {
 
               <div className="mb-6 bg-slate-50 border border-slate-200 p-4 rounded-lg">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">TIPO DE CERTIFICADO</label>
-                <select 
-                  value={certificateType} 
-                  onChange={(e) => setCertificateType(e.target.value)} 
+                <select
+                  value={certificateType}
+                  onChange={(e) => setCertificateType(e.target.value)}
                   className="w-full md:w-1/2 p-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
                 >
                   <option value="digital">Digital</option>
@@ -488,21 +505,21 @@ export default function App() {
                 {certificateType === 'analogico' && (
                   <div className="mt-4 space-y-3 border-t border-slate-200 pt-3">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input 
-                        type="radio" 
+                      <input
+                        type="radio"
                         name="analogState"
-                        checked={analogLegible} 
-                        onChange={() => setAnalogLegible(true)} 
+                        checked={analogLegible}
+                        onChange={() => setAnalogLegible(true)}
                         className="w-4 h-4 text-emerald-600"
                       />
                       <span className="text-sm font-medium">Apresentou certificado legível</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input 
-                        type="radio" 
+                      <input
+                        type="radio"
                         name="analogState"
-                        checked={!analogLegible} 
-                        onChange={() => setAnalogLegible(false)} 
+                        checked={!analogLegible}
+                        onChange={() => setAnalogLegible(false)}
                         className="w-4 h-4 text-emerald-600"
                       />
                       <span className="text-sm font-medium">Não apresentou / Rasurado / Extraviado</span>
@@ -523,27 +540,27 @@ export default function App() {
                   <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3 bg-slate-100 p-2 rounded">Emissões (Base Tributária)</h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.cdi} onChange={(e) => setTaxRequests({ ...taxRequests, cdi: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.cdi} onChange={(e) => handleTaxToggle('cdi', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CDI (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.cdsa} onChange={(e) => setTaxRequests({ ...taxRequests, cdsa: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.cdsa} onChange={(e) => handleTaxToggle('cdsa', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CDSA (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.ci} onChange={(e) => setTaxRequests({ ...taxRequests, ci: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.ci} onChange={(e) => handleTaxToggle('ci', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CI (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.cr} onChange={(e) => setTaxRequests({ ...taxRequests, cr: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.cr} onChange={(e) => handleTaxToggle('cr', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CR (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.csm} onChange={(e) => setTaxRequests({ ...taxRequests, csm: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.csm} onChange={(e) => handleTaxToggle('csm', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CSM (1ª e demais vias)
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.adiamento} onChange={(e) => setTaxRequests({ ...taxRequests, adiamento: e.target.checked })} className="w-4 h-4 rounded text-emerald-600" />
+                      <input type="checkbox" checked={taxRequests.adiamento} onChange={(e) => handleTaxToggle('adiamento', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer Adiamento de Incorporação
                     </label>
                   </div>
@@ -566,86 +583,84 @@ export default function App() {
                   </div>
                 </div>
               </div>
-            </section>
-          </div>
 
-          {/* PAINEL LATERAL - EXTRATO DE RECOLHIMENTO */}
-          <div className="lg:col-span-5">
-            <div className="bg-white border-2 border-slate-800 rounded-xl shadow-2xl sticky top-6 overflow-hidden flex flex-col h-[calc(100vh-3rem)] max-h-[850px]">
+              {/* PAINEL LATERAL - EXTRATO DE RECOLHIMENTO */}
+              <div className="lg:col-span-5">
+                <div className="bg-white border-2 border-slate-800 rounded-xl shadow-2xl sticky top-6 overflow-hidden flex flex-col h-[calc(100vh-3rem)] max-h-[850px]">
 
-              <div className="bg-slate-800 text-white p-5">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Receipt className="w-6 h-6" /> Extrato de Recolhimento
-                </h2>
-                <p className="text-slate-300 text-sm mt-1">Cidadão nascido em {birthYear}</p>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-5 bg-slate-50">
-                {!calculations.hasItems ? (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
-                    <CheckCircle2 className="w-12 h-12 text-slate-300" />
-                    <p className="text-center">Nenhuma taxa ou multa selecionada.<br />Situação regular sem custos.</p>
+                  <div className="bg-slate-800 text-white p-5">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                      <Receipt className="w-6 h-6" /> Extrato de Recolhimento
+                    </h2>
+                    <p className="text-slate-300 text-sm mt-1">Cidadão nascido em {birthYear}</p>
                   </div>
-                ) : (
-                  <ul className="space-y-4">
-                    {calculations.breakdown.map((item, index) => (
-                      <li key={index} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-2">
-                        <div className="flex justify-between items-start gap-4">
-                          <span className="text-sm font-semibold text-slate-800 leading-tight">
-                            {item.label}
-                          </span>
-                          <span className={`font-mono font-bold whitespace-nowrap text-right ${item.amount < 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
-                            {item.amount < 0 ? '-' : ''} R$ {Math.abs(item.amount).toFixed(2).replace('.', ',')}
-                          </span>
-                        </div>
 
-                        {item.amount >= 0 && (
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                              {item.amparo}
-                            </span>
-                            <span className="text-slate-400 font-mono">
-                              ({item.mult}x R$ {baseFee.toFixed(2).replace('.', ',')})
-                            </span>
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+                  <div className="flex-1 overflow-y-auto p-5 bg-slate-50">
+                    {!calculations.hasItems ? (
+                      <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
+                        <CheckCircle2 className="w-12 h-12 text-slate-300" />
+                        <p className="text-center">Nenhuma taxa ou multa selecionada.<br />Situação regular sem custos.</p>
+                      </div>
+                    ) : (
+                      <ul className="space-y-4">
+                        {calculations.breakdown.map((item, index) => (
+                          <li key={index} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-2">
+                            <div className="flex justify-between items-start gap-4">
+                              <span className="text-sm font-semibold text-slate-800 leading-tight">
+                                {item.label}
+                              </span>
+                              <span className={`font-mono font-bold whitespace-nowrap text-right ${item.amount < 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                {item.amount < 0 ? '-' : ''} R$ {Math.abs(item.amount).toFixed(2).replace('.', ',')}
+                              </span>
+                            </div>
 
-              <div className="bg-white p-5 border-t-2 border-slate-800 space-y-4">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <span className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total a Pagar</span>
-                    <span className="block text-xs text-slate-400 font-mono">
-                      (Soma de {calculations.hasItems && !calculations.isExempt ? calculations.breakdown.reduce((acc, curr) => acc + curr.mult, 0) : 0} multiplicadores)
-                    </span>
+                            {item.amount >= 0 && (
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                  {item.amparo}
+                                </span>
+                                <span className="text-slate-400 font-mono">
+                                  ({item.mult}x R$ {baseFee.toFixed(2).replace('.', ',')})
+                                </span>
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                  <span className={`text-3xl font-bold font-mono ${calculations.isExempt ? 'text-emerald-500' : 'text-slate-900'}`}>
-                    R$ {calculations.total.toFixed(2).replace('.', ',')}
-                  </span>
-                </div>
 
-                <div className="bg-red-50 border-l-4 border-red-500 p-3 text-xs text-red-800 font-medium">
-                  A JSM não está autorizada a receber valores em mãos. Emita a GRU ou chave PIX correspondente.
-                </div>
+                  <div className="bg-white p-5 border-t-2 border-slate-800 space-y-4">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <span className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total a Pagar</span>
+                        <span className="block text-xs text-slate-400 font-mono">
+                          (Soma de {calculations.hasItems && !calculations.isExempt ? calculations.breakdown.reduce((acc, curr) => acc + curr.mult, 0) : 0} multiplicadores)
+                        </span>
+                      </div>
+                      <span className={`text-3xl font-bold font-mono ${calculations.isExempt ? 'text-emerald-500' : 'text-slate-900'}`}>
+                        R$ {calculations.total.toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
 
-                <button
-                  className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 font-bold uppercase tracking-wide text-sm"
-                  onClick={() => window.print()}
-                >
-                  <FileText className="w-4 h-4" />
-                  Imprimir Comprovante
-                </button>
+                    <div className="bg-red-50 border-l-4 border-red-500 p-3 text-xs text-red-800 font-medium">
+                      A JSM não está autorizada a receber valores em mãos. Emita a GRU ou chave PIX correspondente.
+                    </div>
+
+                    <button
+                      className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 font-bold uppercase tracking-wide text-sm"
+                      onClick={() => window.print()}
+                    >
+                      <FileText className="w-4 h-4" />
+                      Imprimir Comprovante
+                    </button>
+                  </div>
+
+                </div>
               </div>
 
-            </div>
           </div>
-
         </div>
       </div>
-    </div>
-  );
+      );
 }

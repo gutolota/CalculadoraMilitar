@@ -39,10 +39,10 @@ export default function App() {
         <main className="flex-1">
           <Routes>
             {/* Rota raiz carrega a versão antiga */}
-            <Route path="/" element={<CalculatorV1 />} />
+            <Route path="/" element={<CalculatorV2 />} />
             
             {/* Rota /v2 carrega a versão nova */}
-            <Route path="/v2" element={<CalculatorV2 />} />
+            <Route path="/v1" element={<CalculatorV1 />} />
             
             {/* Fallback caso o usuário digite um link errado */}
             <Route path="*" element={
