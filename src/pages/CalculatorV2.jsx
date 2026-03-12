@@ -583,84 +583,86 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            </section>
+          </div>
 
-              {/* PAINEL LATERAL - EXTRATO DE RECOLHIMENTO */}
-              <div className="lg:col-span-5">
-                <div className="bg-white border-2 border-slate-800 rounded-xl shadow-2xl sticky top-6 overflow-hidden flex flex-col h-[calc(100vh-3rem)] max-h-[850px]">
+          {/* PAINEL LATERAL - EXTRATO DE RECOLHIMENTO */}
+          <div className="lg:col-span-5">
+            <div className="bg-white border-2 border-slate-800 rounded-xl shadow-2xl sticky top-6 overflow-hidden flex flex-col h-[calc(100vh-3rem)] max-h-[850px]">
 
-                  <div className="bg-slate-800 text-white p-5">
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                      <Receipt className="w-6 h-6" /> Extrato de Recolhimento
-                    </h2>
-                    <p className="text-slate-300 text-sm mt-1">Cidadão nascido em {birthYear}</p>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-5 bg-slate-50">
-                    {!calculations.hasItems ? (
-                      <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
-                        <CheckCircle2 className="w-12 h-12 text-slate-300" />
-                        <p className="text-center">Nenhuma taxa ou multa selecionada.<br />Situação regular sem custos.</p>
-                      </div>
-                    ) : (
-                      <ul className="space-y-4">
-                        {calculations.breakdown.map((item, index) => (
-                          <li key={index} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-2">
-                            <div className="flex justify-between items-start gap-4">
-                              <span className="text-sm font-semibold text-slate-800 leading-tight">
-                                {item.label}
-                              </span>
-                              <span className={`font-mono font-bold whitespace-nowrap text-right ${item.amount < 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
-                                {item.amount < 0 ? '-' : ''} R$ {Math.abs(item.amount).toFixed(2).replace('.', ',')}
-                              </span>
-                            </div>
-
-                            {item.amount >= 0 && (
-                              <div className="flex justify-between items-center text-xs">
-                                <span className="text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                                  {item.amparo}
-                                </span>
-                                <span className="text-slate-400 font-mono">
-                                  ({item.mult}x R$ {baseFee.toFixed(2).replace('.', ',')})
-                                </span>
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-
-                  <div className="bg-white p-5 border-t-2 border-slate-800 space-y-4">
-                    <div className="flex justify-between items-end">
-                      <div>
-                        <span className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total a Pagar</span>
-                        <span className="block text-xs text-slate-400 font-mono">
-                          (Soma de {calculations.hasItems && !calculations.isExempt ? calculations.breakdown.reduce((acc, curr) => acc + curr.mult, 0) : 0} multiplicadores)
-                        </span>
-                      </div>
-                      <span className={`text-3xl font-bold font-mono ${calculations.isExempt ? 'text-emerald-500' : 'text-slate-900'}`}>
-                        R$ {calculations.total.toFixed(2).replace('.', ',')}
-                      </span>
-                    </div>
-
-                    <div className="bg-red-50 border-l-4 border-red-500 p-3 text-xs text-red-800 font-medium">
-                      A JSM não está autorizada a receber valores em mãos. Emita a GRU ou chave PIX correspondente.
-                    </div>
-
-                    <button
-                      className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 font-bold uppercase tracking-wide text-sm"
-                      onClick={() => window.print()}
-                    >
-                      <FileText className="w-4 h-4" />
-                      Imprimir Comprovante
-                    </button>
-                  </div>
-
-                </div>
+              <div className="bg-slate-800 text-white p-5">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Receipt className="w-6 h-6" /> Extrato de Recolhimento
+                </h2>
+                <p className="text-slate-300 text-sm mt-1">Cidadão nascido em {birthYear}</p>
               </div>
 
+              <div className="flex-1 overflow-y-auto p-5 bg-slate-50">
+                {!calculations.hasItems ? (
+                  <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
+                    <CheckCircle2 className="w-12 h-12 text-slate-300" />
+                    <p className="text-center">Nenhuma taxa ou multa selecionada.<br />Situação regular sem custos.</p>
+                  </div>
+                ) : (
+                  <ul className="space-y-4">
+                    {calculations.breakdown.map((item, index) => (
+                      <li key={index} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-2">
+                        <div className="flex justify-between items-start gap-4">
+                          <span className="text-sm font-semibold text-slate-800 leading-tight">
+                            {item.label}
+                          </span>
+                          <span className={`font-mono font-bold whitespace-nowrap text-right ${item.amount < 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
+                            {item.amount < 0 ? '-' : ''} R$ {Math.abs(item.amount).toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+
+                        {item.amount >= 0 && (
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                              {item.amparo}
+                            </span>
+                            <span className="text-slate-400 font-mono">
+                              ({item.mult}x R$ {baseFee.toFixed(2).replace('.', ',')})
+                            </span>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="bg-white p-5 border-t-2 border-slate-800 space-y-4">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span className="block text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total a Pagar</span>
+                    <span className="block text-xs text-slate-400 font-mono">
+                      (Soma de {calculations.hasItems && !calculations.isExempt ? calculations.breakdown.reduce((acc, curr) => acc + curr.mult, 0) : 0} multiplicadores)
+                    </span>
+                  </div>
+                  <span className={`text-3xl font-bold font-mono ${calculations.isExempt ? 'text-emerald-500' : 'text-slate-900'}`}>
+                    R$ {calculations.total.toFixed(2).replace('.', ',')}
+                  </span>
+                </div>
+
+                <div className="bg-red-50 border-l-4 border-red-500 p-3 text-xs text-red-800 font-medium">
+                  A JSM não está autorizada a receber valores em mãos. Emita a GRU ou chave PIX correspondente.
+                </div>
+
+                <button
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 font-bold uppercase tracking-wide text-sm"
+                  onClick={() => window.print()}
+                >
+                  <FileText className="w-4 h-4" />
+                  Imprimir Comprovante
+                </button>
+              </div>
+
+            </div>
           </div>
+
         </div>
       </div>
-      );
+    </div>
+  );
 }
