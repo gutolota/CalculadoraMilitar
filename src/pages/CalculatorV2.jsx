@@ -60,13 +60,13 @@ export default function CalculatorV2() {
   useEffect(() => {
     try {
       localStorage.setItem('jsm_baseFee', baseFee.toString());
-    } catch (e) {}
+    } catch (e) { }
   }, [baseFee]);
 
   useEffect(() => {
     try {
       localStorage.setItem('jsm_rules', JSON.stringify(rules));
-    } catch (e) {}
+    } catch (e) { }
   }, [rules]);
 
   const handleRuleChange = (key, field, value) => {
@@ -238,21 +238,21 @@ export default function CalculatorV2() {
             type="number"
             value={rules[key].mult}
             onChange={e => handleRuleChange(key, 'mult', e.target.value)}
-            className="w-16 border border-slate-300 rounded p-1 text-center text-sm focus:ring-1 focus:ring-emerald-500 outline-none"
+            className="w-16 border border-slate-300 bg-white rounded p-1 text-center text-sm text-slate-900 focus:ring-1 focus:ring-emerald-500 outline-none"
             title="Multiplicador (Qtd. vezes)"
           />
           <input
             type="text"
             value={rules[key].amparo}
             onChange={e => handleRuleChange(key, 'amparo', e.target.value)}
-            className="flex-1 border border-slate-300 rounded p-1 text-sm focus:ring-1 focus:ring-emerald-500 outline-none text-slate-600"
+            className="flex-1 border border-slate-300 bg-white rounded p-1 text-sm text-slate-900 focus:ring-1 focus:ring-emerald-500 outline-none"
             title="Amparo Legal"
           />
         </div>
       </div>
     );
   };
-  
+
   const handleTaxToggle = (key, isChecked) => {
     if (isChecked) {
       setTaxRequests({
@@ -570,14 +570,14 @@ export default function CalculatorV2() {
                       <input type="checkbox" checked={taxRequests.csm} onChange={(e) => handleTaxToggle('csm', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CSM (1ª e demais vias)
                     </label>
-                    
+
                     <label className={`flex items-center gap-3 text-sm p-1 rounded transition-all duration-300 ${certificateType !== 'digital' ? 'opacity-40 pointer-events-none select-none' : 'cursor-pointer hover:bg-slate-50'}`}>
-                      <input 
-                        type="checkbox" 
-                        checked={taxRequests.adiamento} 
-                        onChange={(e) => handleTaxToggle('adiamento', e.target.checked)} 
+                      <input
+                        type="checkbox"
+                        checked={taxRequests.adiamento}
+                        onChange={(e) => handleTaxToggle('adiamento', e.target.checked)}
                         disabled={certificateType !== 'digital'}
-                        className="w-4 h-4 rounded text-emerald-600" 
+                        className="w-4 h-4 rounded text-emerald-600"
                       />
                       Requerer Adiamento de Incorporação
                     </label>
@@ -591,20 +591,20 @@ export default function CalculatorV2() {
                   </h3>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input 
-                        type="checkbox" 
-                        checked={lostDocs.cr_csm} 
-                        onChange={(e) => handleLostDocsToggle('cr_csm', e.target.checked)} 
-                        className="w-4 h-4 rounded text-red-600" 
+                      <input
+                        type="checkbox"
+                        checked={lostDocs.cr_csm}
+                        onChange={(e) => handleLostDocsToggle('cr_csm', e.target.checked)}
+                        className="w-4 h-4 rounded text-red-600"
                       />
                       Extravio do CR ou CSM
                     </label>
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input 
-                        type="checkbox" 
-                        checked={lostDocs.cdi_ci_cdsa} 
-                        onChange={(e) => handleLostDocsToggle('cdi_ci_cdsa', e.target.checked)} 
-                        className="w-4 h-4 rounded text-red-600" 
+                      <input
+                        type="checkbox"
+                        checked={lostDocs.cdi_ci_cdsa}
+                        onChange={(e) => handleLostDocsToggle('cdi_ci_cdsa', e.target.checked)}
+                        className="w-4 h-4 rounded text-red-600"
                       />
                       Extravio do CDI, CI ou CDSA
                     </label>
