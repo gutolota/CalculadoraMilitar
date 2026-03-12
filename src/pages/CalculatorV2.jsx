@@ -291,7 +291,7 @@ export default function CalculatorV2() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Calculator className="w-6 h-6" />
-              Calculadora JSM (Decreto 12664/2025)
+              Calculadora de taxas e multas militares (Decreto 12664/2025)
             </h1>
             <p className="text-emerald-200 mt-1 text-sm">Atualizada com as novas penalidades pecuniárias do RCORE.</p>
           </div>
