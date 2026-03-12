@@ -102,12 +102,14 @@ export default function App() {
   const [taxRequests, setTaxRequests] = useState({ cdi: false, cdsa: false, ci: false, cr: false, csm: false, adiamento: false });
   const [lostDocs, setLostDocs] = useState({ cr_csm: false, cdi_ci_cdsa: false });
 
-  // Regra automática: CS (limite de 10 anos)
+  // Regra automática: CS (limite de 10 anos após os 18 anos)
   useEffect(() => {
     const currentYear = new Date().getFullYear();
-    const diff = currentYear - birthYear;
-    if (diff > 0) {
-      setRefractoryYears(Math.min(10, diff));
+    // A falta começa a contar a partir da idade de alistamento (18 anos)
+    const anosPassados = (currentYear - birthYear) - 18;
+    
+    if (anosPassados > 0) {
+      setRefractoryYears(Math.min(10, anosPassados));
     } else {
       setRefractoryYears(0);
     }
@@ -343,7 +345,7 @@ export default function App() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Ano de Nascimento</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Ano de nascimento (classe)</label>
                   <div className="flex items-center">
                     <Calendar className="w-5 h-5 text-slate-400 absolute ml-3" />
                     <input type="number" value={birthYear} onChange={(e) => setBirthYear(e.target.value)} className="w-full pl-10 p-2 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none font-mono" />
@@ -391,7 +393,18 @@ export default function App() {
                     <div className="p-3 bg-white rounded border border-amber-200 space-y-3">
                       <div className="flex items-center gap-3">
                         <span className="text-sm text-slate-700 font-medium">Quantos anos faltou à CS?</span>
-                        <input type="number" min="1" value={refractoryYears} onChange={(e) => setRefractoryYears(Number(e.target.value))} className="w-20 p-2 border border-amber-300 rounded text-center outline-none focus:border-amber-500 font-mono text-lg" />
+                        <input 
+                          type="number" 
+                          min="1" 
+                          max="10"
+                          value={refractoryYears} 
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            // Garante que a inserção manual fique sempre entre 1 e 10
+                            setRefractoryYears(Math.max(1, Math.min(10, val)));
+                          }} 
+                          className="w-20 p-2 border border-amber-300 rounded text-center outline-none focus:border-amber-500 font-mono text-lg" 
+                        />
                       </div>
                       <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded">
                         <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
