@@ -673,7 +673,7 @@ export default function CalculatorV2() {
                 </div>
 
                 <div className="bg-red-50 border-l-4 border-red-500 p-3 text-xs text-red-800 font-medium">
-                  A JSM não está autorizada a receber valores em mãos. Emita a GRU ou chave PIX correspondente.
+                  A JSM não está autorizada a receber valores em mãos. Emita preferencialmente PIX ou GRU correspondente.
                 </div>
 
                 <button
