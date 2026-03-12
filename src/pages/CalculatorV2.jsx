@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Calculator, AlertCircle, CheckCircle2, Receipt, Settings, User, FileText, ShieldAlert, Calendar, SlidersHorizontal, ChevronDown, ChevronUp, RefreshCw, Info } from 'lucide-react';
+import { Calculator, AlertCircle, CheckCircle, Receipt, Settings, User, FileText, ShieldAlert, Calendar, SlidersHorizontal, ChevronDown, ChevronUp, RefreshCw, Info } from 'lucide-react';
 
 // Regras padrão atualizadas com os amparos exatos do sistema
 const DEFAULT_RULES = {
@@ -28,36 +28,45 @@ const DEFAULT_RULES = {
 
 const DEFAULT_BASE_FEE = 6.46;
 
-export default function App() {
+export default function CalculatorV2() {
   // --- CONFIGURAÇÕES BASE E REGRAS DINÂMICAS ---
   const [showSettings, setShowSettings] = useState(false);
 
+  // Blindagem do LocalStorage contra SSR e erros de permissão do navegador
   const [baseFee, setBaseFee] = useState(() => {
-    const saved = localStorage.getItem('jsm_baseFee');
-    return saved !== null ? parseFloat(saved) : DEFAULT_BASE_FEE;
+    if (typeof window === 'undefined') return DEFAULT_BASE_FEE;
+    try {
+      const saved = localStorage.getItem('jsm_baseFee');
+      return saved !== null ? parseFloat(saved) : DEFAULT_BASE_FEE;
+    } catch (e) {
+      return DEFAULT_BASE_FEE;
+    }
   });
 
   const [rules, setRules] = useState(() => {
-    const saved = localStorage.getItem('jsm_rules');
-    if (saved) {
-      try {
+    if (typeof window === 'undefined') return DEFAULT_RULES;
+    try {
+      const saved = localStorage.getItem('jsm_rules');
+      if (saved) {
         const parsed = JSON.parse(saved);
-        // Mescla para garantir que as novas taxas (CI, CR, CSM) existam mesmo se já houver cache
         return { ...DEFAULT_RULES, ...parsed };
-      } catch (e) {
-        console.error("Erro ao carregar regras salvas", e);
-        return DEFAULT_RULES;
       }
+    } catch (e) {
+      console.warn("Recuperação do cache falhou, usando regras originais.", e);
     }
     return DEFAULT_RULES;
   });
 
   useEffect(() => {
-    localStorage.setItem('jsm_baseFee', baseFee.toString());
+    try {
+      localStorage.setItem('jsm_baseFee', baseFee.toString());
+    } catch (e) {}
   }, [baseFee]);
 
   useEffect(() => {
-    localStorage.setItem('jsm_rules', JSON.stringify(rules));
+    try {
+      localStorage.setItem('jsm_rules', JSON.stringify(rules));
+    } catch (e) {}
   }, [rules]);
 
   const handleRuleChange = (key, field, value) => {
@@ -105,7 +114,6 @@ export default function App() {
   // Regra automática: CS (limite de 10 anos após os 18 anos)
   useEffect(() => {
     const currentYear = new Date().getFullYear();
-    // A falta começa a contar a partir da idade de alistamento (18 anos)
     const anosPassados = (currentYear - birthYear) - 18;
 
     if (anosPassados > 0) {
@@ -123,7 +131,6 @@ export default function App() {
     let breakdown = [];
     let total = 0;
 
-    // 1. ALISTAMENTO
     if (enlistmentStatus === 'late') {
       const rule = rules.alistamentoAtraso;
       breakdown.push({ label: 'Apresentar-se fora do prazo para alistamento', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee });
@@ -135,7 +142,6 @@ export default function App() {
       total += rule.mult * baseFee;
     }
 
-    // 2. SELEÇÃO (REFRATÁRIO)
     if (selectionStatus === 'missed' && refractoryYears > 0) {
       if (refractoryYears >= 1) {
         const rule = rules.refratario1;
@@ -156,7 +162,6 @@ export default function App() {
       }
     }
 
-    // 3. OBRIGAÇÕES DA RESERVA E ATUALIZAÇÕES
     const isMfdv = reserveCategory === 'oficial_mfdv';
 
     if (exarMissedYears > 0) {
@@ -181,7 +186,6 @@ export default function App() {
       total += rule.mult * baseFee;
     }
 
-    // 4. MFDV ESPECÍFICOS
     if (mfdvMissedRenewals > 0) {
       const rule = rules.mfdvAdiamento;
       const mult = mfdvMissedRenewals * rule.mult;
@@ -194,13 +198,11 @@ export default function App() {
       total += rule.mult * baseFee;
     }
 
-    // 5. EXTRAVIOS (Apenas se não estiver bloqueado pela lógica do certificado)
     if (!isExtravioDisabled) {
       if (lostDocs.cr_csm) { const rule = rules.extravioCrCsm; breakdown.push({ label: 'Extravio/Inutilização do CR/CSM', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
       if (lostDocs.cdi_ci_cdsa) { const rule = rules.extravioCdiCiCdsa; breakdown.push({ label: 'Extravio do CDI, CI ou CDSA', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
     }
 
-    // 6. TAXAS
     const getEmissionMult = (ruleMult) => (certificateType === 'analogico' && analogLegible) ? 0 : ruleMult;
 
     if (taxRequests.cdi) { const rule = rules.taxaCdi; const mult = getEmissionMult(rule.mult); breakdown.push({ label: 'Requerer CDI', amparo: rule.amparo, mult, amount: mult * baseFee }); total += mult * baseFee; }
@@ -210,7 +212,6 @@ export default function App() {
     if (taxRequests.csm) { const rule = rules.taxaCsm; const mult = getEmissionMult(rule.mult); breakdown.push({ label: 'Requerer CSM', amparo: rule.amparo, mult, amount: mult * baseFee }); total += mult * baseFee; }
     if (taxRequests.adiamento) { const rule = rules.taxaAdiamento; const mult = getEmissionMult(rule.mult); breakdown.push({ label: 'Requerer adiamento de incorporação', amparo: rule.amparo, mult, amount: mult * baseFee }); total += mult * baseFee; }
 
-    // 7. ISENÇÕES
     const isExempt = exemption !== 'none';
     if (isExempt && total > 0) {
       breakdown.push({ label: `Isenção por Impossibilidade de Pagamento`, amparo: 'Art 225 RLSM', mult: 0, amount: -total });
@@ -244,9 +245,9 @@ export default function App() {
       </div>
     );
   };
+  
   const handleTaxToggle = (key, isChecked) => {
     if (isChecked) {
-      // Zera todas as taxas e ativa apenas a que foi clicada
       setTaxRequests({
         cdi: false,
         cdsa: false,
@@ -257,8 +258,21 @@ export default function App() {
         [key]: true
       });
     } else {
-      // Se está desmarcando, apenas altera a atual para false
       setTaxRequests(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const handleLostDocsToggle = (key, isChecked) => {
+    if (isChecked) {
+      // Zera tudo e ativa apenas a opção clicada
+      setLostDocs({
+        cr_csm: false,
+        cdi_ci_cdsa: false,
+        [key]: true
+      });
+    } else {
+      // Apenas desativa a opção atual se o usuário desmarcar
+      setLostDocs(prev => ({ ...prev, [key]: false }));
     }
   };
 
@@ -266,7 +280,6 @@ export default function App() {
     <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-800">
       <div className="mx-auto space-y-6">
 
-        {/* HEADER E CONFIGURAÇÕES */}
         <header className="bg-emerald-900 text-white rounded-xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -293,7 +306,6 @@ export default function App() {
           </div>
         </header>
 
-        {/* PAINEL DE CONFIGURAÇÕES DE REGRAS */}
         {showSettings && (
           <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500 animate-in fade-in slide-in-from-top-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
@@ -351,10 +363,8 @@ export default function App() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* PAINEL CENTRAL - FLUXO DE TRIAGEM */}
           <div className="lg:col-span-7 space-y-6">
 
-            {/* Etapa 1: Dados e Alistamento */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
                 <User className="w-5 h-5" /> 1. Dados e Situação de Alistamento
@@ -391,14 +401,12 @@ export default function App() {
               </div>
             </section>
 
-            {/* Etapa 2 e 3: Seleção e Reserva */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
                 <ShieldAlert className="w-5 h-5" /> 2. Seleção Geral e Obrigações da Reserva
               </h2>
 
               <div className="space-y-6">
-                {/* Seleção */}
                 <div className="bg-amber-50/50 p-4 rounded-lg border border-amber-100">
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Comissão de Seleção (CS)</label>
                   <select value={selectionStatus} onChange={(e) => setSelectionStatus(e.target.value)} className="w-full p-2 border border-amber-200 rounded focus:ring-2 focus:ring-amber-500 outline-none mb-3">
@@ -417,7 +425,6 @@ export default function App() {
                           value={refractoryYears}
                           onChange={(e) => {
                             const val = Number(e.target.value);
-                            // Garante que a inserção manual fique sempre entre 1 e 10
                             setRefractoryYears(Math.max(1, Math.min(10, val)));
                           }}
                           className="w-20 p-2 border border-amber-300 rounded text-center outline-none focus:border-amber-500 font-mono text-lg"
@@ -433,7 +440,6 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Obrigações da Reserva */}
                 <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Categoria na Reserva</label>
@@ -479,7 +485,6 @@ export default function App() {
               </div>
             </section>
 
-            {/* Etapa 4: Documentos e Extravios */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <h2 className="text-lg font-bold border-b pb-3 mb-5 flex items-center gap-2 text-emerald-800">
                 <FileText className="w-5 h-5" /> 3. Solicitações e Extravios de Documentos
@@ -535,7 +540,6 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Taxas de Emissão */}
                 <div>
                   <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3 bg-slate-100 p-2 rounded">Emissões (Base Tributária)</h3>
                   <div className="space-y-3">
@@ -566,27 +570,35 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Extravios */}
-                <div className={isExtravioDisabled ? "opacity-40 pointer-events-none select-none transition-opacity duration-300" : "transition-opacity duration-300"}>
-                  <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded flex justify-between items-center">
-                    Extravios (Multas)
-                  </h3>
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="checkbox" checked={lostDocs.cr_csm} onChange={(e) => setLostDocs({ ...lostDocs, cr_csm: e.target.checked })} className="w-4 h-4 rounded text-red-600" />
-                      Extravio do CR ou CSM
-                    </label>
-                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-                      <input type="checkbox" checked={lostDocs.cdi_ci_cdsa} onChange={(e) => setLostDocs({ ...lostDocs, cdi_ci_cdsa: e.target.checked })} className="w-4 h-4 rounded text-red-600" />
-                      Extravio do CDI, CI ou CDSA
-                    </label>
-                  </div>
-                </div>
+<div className={isExtravioDisabled ? "opacity-40 pointer-events-none select-none transition-opacity duration-300" : "transition-opacity duration-300"}>
+  <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded flex justify-between items-center">
+    Extravios (Multas)
+  </h3>
+  <div className="space-y-3">
+    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
+      <input 
+        type="checkbox" 
+        checked={lostDocs.cr_csm} 
+        onChange={(e) => handleLostDocsToggle('cr_csm', e.target.checked)} 
+        className="w-4 h-4 rounded text-red-600" 
+      />
+      Extravio do CR ou CSM
+    </label>
+    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
+      <input 
+        type="checkbox" 
+        checked={lostDocs.cdi_ci_cdsa} 
+        onChange={(e) => handleLostDocsToggle('cdi_ci_cdsa', e.target.checked)} 
+        className="w-4 h-4 rounded text-red-600" 
+      />
+      Extravio do CDI, CI ou CDSA
+    </label>
+  </div>
+</div>
               </div>
             </section>
           </div>
 
-          {/* PAINEL LATERAL - EXTRATO DE RECOLHIMENTO */}
           <div className="lg:col-span-5">
             <div className="bg-white border-2 border-slate-800 rounded-xl shadow-2xl sticky top-6 overflow-hidden flex flex-col h-[calc(100vh-3rem)] max-h-[850px]">
 
@@ -600,7 +612,7 @@ export default function App() {
               <div className="flex-1 overflow-y-auto p-5 bg-slate-50">
                 {!calculations.hasItems ? (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
-                    <CheckCircle2 className="w-12 h-12 text-slate-300" />
+                    <CheckCircle className="w-12 h-12 text-slate-300" />
                     <p className="text-center">Nenhuma taxa ou multa selecionada.<br />Situação regular sem custos.</p>
                   </div>
                 ) : (

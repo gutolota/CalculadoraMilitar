@@ -5,7 +5,7 @@ import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import CalculatorV1 from './pages/CalculatorV1';
 import CalculatorV2 from './pages/CalculatorV2';
 
-// Um componente simples de navegação para alternar entre as versões
+// Componente simples de navegação para alternar entre as versões
 function Navigation() {
   const location = useLocation();
   
@@ -15,7 +15,7 @@ function Navigation() {
         to="/" 
         className={`font-bold transition-colors ${location.pathname === '/' ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-slate-300 hover:text-emerald-300'}`}
       >
-        Versão 1 (Atual)
+        Versão 1 (Antiga)
       </Link>
       <Link 
         to="/v2" 
@@ -29,20 +29,20 @@ function Navigation() {
 
 export default function App() {
   return (
-    // O atributo basename DEVE ser exatamente igual ao 'base' do seu vite.config.js
-    <HashRouter basename="/CalculadoraMilitar">
+    // HashRouter geralmente NÃO usa basename, o Vite já resolve isso no build
+    <HashRouter>
       <div className="min-h-screen bg-slate-100 flex flex-col">
         {/* Barra de navegação visível em todas as telas */}
-        <Navigation />
+        {/* <Navigation /> */}
 
         {/* Área onde as calculadoras vão renderizar */}
         <main className="flex-1">
           <Routes>
-            {/* Rota raiz carrega a versão antiga */}
+            {/* Rota / carrega a versão 2 */}
             <Route path="/" element={<CalculatorV2 />} />
             
-            {/* Rota /v2 carrega a versão nova */}
-            <Route path="/v1" element={<CalculatorV1 />} />
+            {/* Rota v0 carrega a versão 1
+            <Route path="/v0" element={<CalculatorV1 />} /> */}
             
             {/* Fallback caso o usuário digite um link errado */}
             <Route path="*" element={
