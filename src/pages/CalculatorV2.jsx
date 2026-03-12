@@ -126,6 +126,13 @@ export default function CalculatorV2() {
   // Controle de Bloqueio de Extravios
   const isExtravioDisabled = certificateType === 'digital' || (certificateType === 'analogico' && analogLegible);
 
+  // Regra automática: Desmarca o adiamento caso o tipo de certificado mude para não-digital
+  useEffect(() => {
+    if (certificateType !== 'digital' && taxRequests.adiamento) {
+      setTaxRequests(prev => ({ ...prev, adiamento: false }));
+    }
+  }, [certificateType, taxRequests.adiamento]);
+
   // --- MOTOR DE CÁLCULO ---
   const calculations = useMemo(() => {
     let breakdown = [];
@@ -563,38 +570,46 @@ export default function CalculatorV2() {
                       <input type="checkbox" checked={taxRequests.csm} onChange={(e) => handleTaxToggle('csm', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
                       Requerer CSM (1ª e demais vias)
                     </label>
-                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
-                      <input type="checkbox" checked={taxRequests.adiamento} onChange={(e) => handleTaxToggle('adiamento', e.target.checked)} className="w-4 h-4 rounded text-emerald-600" />
+                    
+                    <label className={`flex items-center gap-3 text-sm p-1 rounded transition-all duration-300 ${certificateType !== 'digital' ? 'opacity-40 pointer-events-none select-none' : 'cursor-pointer hover:bg-slate-50'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={taxRequests.adiamento} 
+                        onChange={(e) => handleTaxToggle('adiamento', e.target.checked)} 
+                        disabled={certificateType !== 'digital'}
+                        className="w-4 h-4 rounded text-emerald-600" 
+                      />
                       Requerer Adiamento de Incorporação
                     </label>
+
                   </div>
                 </div>
 
-<div className={isExtravioDisabled ? "opacity-40 pointer-events-none select-none transition-opacity duration-300" : "transition-opacity duration-300"}>
-  <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded flex justify-between items-center">
-    Extravios (Multas)
-  </h3>
-  <div className="space-y-3">
-    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-      <input 
-        type="checkbox" 
-        checked={lostDocs.cr_csm} 
-        onChange={(e) => handleLostDocsToggle('cr_csm', e.target.checked)} 
-        className="w-4 h-4 rounded text-red-600" 
-      />
-      Extravio do CR ou CSM
-    </label>
-    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
-      <input 
-        type="checkbox" 
-        checked={lostDocs.cdi_ci_cdsa} 
-        onChange={(e) => handleLostDocsToggle('cdi_ci_cdsa', e.target.checked)} 
-        className="w-4 h-4 rounded text-red-600" 
-      />
-      Extravio do CDI, CI ou CDSA
-    </label>
-  </div>
-</div>
+                <div className={isExtravioDisabled ? "opacity-40 pointer-events-none select-none transition-opacity duration-300" : "transition-opacity duration-300"}>
+                  <h3 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded flex justify-between items-center">
+                    Extravios (Multas)
+                  </h3>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={lostDocs.cr_csm} 
+                        onChange={(e) => handleLostDocsToggle('cr_csm', e.target.checked)} 
+                        className="w-4 h-4 rounded text-red-600" 
+                      />
+                      Extravio do CR ou CSM
+                    </label>
+                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:bg-red-50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={lostDocs.cdi_ci_cdsa} 
+                        onChange={(e) => handleLostDocsToggle('cdi_ci_cdsa', e.target.checked)} 
+                        className="w-4 h-4 rounded text-red-600" 
+                      />
+                      Extravio do CDI, CI ou CDSA
+                    </label>
+                  </div>
+                </div>
               </div>
             </section>
           </div>
