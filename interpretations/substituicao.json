@@ -2,28 +2,21 @@
   "name": "Interpretação por Substituição (Não Cumulativa)",
   "nodes": [
     { "id": "sys", "type": "system", "position": { "x": 800, "y": 0 }, "data": { "militaryAge": 18, "maxRefractoryYears": 10, "communicationDeadlineDays": 60 } },
-    
     { "id": "q-check-status", "type": "condition", "position": { "x": 400, "y": 0 }, "data": { "field": "selectionStatus", "operator": "eq", "value": "missed", "label": "Faltou à Seleção (CS)?" } },
-
     { "id": "q-sub-2", "type": "condition", "position": { "x": 600, "y": 200 }, "data": { "field": "refractoryYears", "operator": "gt", "value": "1", "label": "Refratário 2 anos ou mais?" } },
     { "id": "a-sub-2", "type": "action", "position": { "x": 800, "y": 400 }, "data": { "label": "Multa Refratário (Substituição 5x)", "mult": 5, "amparo": "Art 178 RLSM" } },
-
     { "id": "q-sub-1", "type": "condition", "position": { "x": 400, "y": 400 }, "data": { "field": "refractoryYears", "operator": "eq", "value": "1", "label": "Refratário 1 ano?" } },
     { "id": "a-sub-1", "type": "action", "position": { "x": 200, "y": 600 }, "data": { "label": "Multa Refratário (Substituição 1x)", "mult": 1, "amparo": "Art 176 RLSM" } },
-
     { "id": "q1", "type": "condition", "position": { "x": 100, "y": 200 }, "data": { "field": "enlistmentStatus", "operator": "eq", "value": "late", "label": "Atraso no Alistamento?" } },
     { "id": "a1", "type": "action", "position": { "x": -100, "y": 400 }, "data": { "label": "Multa Atraso (1x)", "mult": 1, "amparo": "Art 176 RLSM" } }
   ],
   "edges": [
     { "id": "e-start-y", "source": "q-check-status", "sourceHandle": "yes", "target": "q-sub-2", "label": "SIM", "animated": true },
-    { "id": "e-start-n", "source": "q-check-status", "sourceHandle: "no", "target": "q1", "label": "NÃO" },
-
+    { "id": "e-start-n", "source": "q-check-status", "sourceHandle": "no", "target": "q1", "label": "NÃO" },
     { "id": "e1-y", "source": "q-sub-2", "sourceHandle": "yes", "target": "a-sub-2", "label": "SIM" },
     { "id": "e1-n", "source": "q-sub-2", "sourceHandle": "no", "target": "q-sub-1", "label": "NÃO" },
-
     { "id": "e2-y", "source": "q-sub-1", "sourceHandle": "yes", "target": "a-sub-1", "label": "SIM" },
     { "id": "e2-n", "source": "q-sub-1", "sourceHandle": "no", "target": "q1", "label": "NÃO" },
-
     { "id": "e3-y", "source": "q1", "sourceHandle": "yes", "target": "a1", "label": "SIM" }
   ]
 }

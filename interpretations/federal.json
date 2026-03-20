@@ -2,29 +2,22 @@
   "name": "Lei Federal (Padrão)",
   "nodes": [
     { "id": "sys", "type": "system", "position": { "x": 800, "y": 0 }, "data": { "militaryAge": 18, "maxRefractoryYears": 10, "communicationDeadlineDays": 60 } },
-    
     { "id": "q1", "type": "condition", "position": { "x": 400, "y": 0 }, "data": { "field": "enlistmentStatus", "operator": "eq", "value": "late", "label": "Atraso no Alistamento?" } },
     { "id": "a1", "type": "action", "position": { "x": 50, "y": 200 }, "data": { "label": "Multa Art 176 (Atraso)", "mult": 1, "amparo": "Art 176 RLSM" } },
-    
     { "id": "q-check-ref", "type": "condition", "position": { "x": 400, "y": 400 }, "data": { "field": "selectionStatus", "operator": "eq", "value": "missed", "label": "Faltou à Seleção (CS)?" } },
-
     { "id": "q2", "type": "condition", "position": { "x": 600, "y": 600 }, "data": { "field": "refractoryYears", "operator": "gt", "value": "0", "label": "Refratário (1ª Falta)?" } },
     { "id": "a2", "type": "action", "position": { "x": 800, "y": 800 }, "data": { "label": "Falta CS (1ª vez)", "mult": 1, "amparo": "Art 176 RLSM" } },
-    
     { "id": "q3", "type": "condition", "position": { "x": 400, "y": 800 }, "data": { "field": "refractoryYears", "operator": "gt", "value": "1", "label": "Refratário (2ª Falta)?" } },
     { "id": "a3", "type": "action", "position": { "x": 200, "y": 1000 }, "data": { "label": "Falta CS (2ª vez)", "mult": 5, "amparo": "Art 178 RLSM" } }
   ],
   "edges": [
     { "id": "e1-y", "source": "q1", "sourceHandle": "yes", "target": "a1", "label": "SIM" },
-    { "id": "e1-n", "source": "q1", "sourceHandle: "no", "target": "q-check-ref", "label": "NÃO" },
+    { "id": "e1-n", "source": "q1", "sourceHandle": "no", "target": "q-check-ref", "label": "NÃO" },
     { "id": "e1-next", "source": "a1", "target": "q-check-ref" },
-    
     { "id": "e-ref-y", "source": "q-check-ref", "sourceHandle": "yes", "target": "q2", "label": "SIM", "animated": true },
-    
     { "id": "e2-y", "source": "q2", "sourceHandle": "yes", "target": "a2", "label": "SIM" },
     { "id": "e2-n", "source": "q2", "sourceHandle": "no", "target": "q3", "label": "NÃO" },
     { "id": "e2-next", "source": "a2", "target": "q3" },
-
     { "id": "e3-y", "source": "q3", "sourceHandle": "yes", "target": "a3", "label": "SIM" }
   ]
 }
