@@ -1,22 +1,37 @@
 {
   "name": "Interpretação por Substituição (Não Cumulativa)",
   "nodes": [
-    { "id": "sys", "type": "system", "position": { "x": 800, "y": 0 }, "data": { "militaryAge": 18, "maxRefractoryYears": 10, "communicationDeadlineDays": 60 } },
-    { "id": "q-check-status", "type": "condition", "position": { "x": 400, "y": 0 }, "data": { "field": "selectionStatus", "operator": "eq", "value": "missed", "label": "Faltou à Seleção (CS)?" } },
-    { "id": "q-sub-2", "type": "condition", "position": { "x": 600, "y": 200 }, "data": { "field": "refractoryYears", "operator": "gt", "value": "1", "label": "Refratário 2 anos ou mais?" } },
-    { "id": "a-sub-2", "type": "action", "position": { "x": 800, "y": 400 }, "data": { "label": "Multa Refratário (Substituição 5x)", "mult": 5, "amparo": "Art 178 RLSM" } },
-    { "id": "q-sub-1", "type": "condition", "position": { "x": 400, "y": 400 }, "data": { "field": "refractoryYears", "operator": "eq", "value": "1", "label": "Refratário 1 ano?" } },
-    { "id": "a-sub-1", "type": "action", "position": { "x": 200, "y": 600 }, "data": { "label": "Multa Refratário (Substituição 1x)", "mult": 1, "amparo": "Art 176 RLSM" } },
+    { "id": "sys", "type": "system", "position": { "x": 1000, "y": 0 }, "data": { "militaryAge": 18, "maxRefractoryYears": 10, "communicationDeadlineDays": 60 } },
+    { "id": "q-check-status", "type": "condition", "position": { "x": 500, "y": 0 }, "data": { "field": "selectionStatus", "operator": "eq", "value": "missed", "label": "Faltou à Seleção (CS)?" } },
+    
+    { "id": "q-gt-2", "type": "condition", "position": { "x": 700, "y": 200 }, "data": { "field": "refractoryYears", "operator": "gt", "value": "2", "label": "Faltou 3 anos ou mais?" } },
+    { "id": "a-mult-extra", "type": "action", "position": { "x": 900, "y": 400 }, "data": { "label": "Multa Refratário 3+ (Substitutiva)", "mult": 5, "amparo": "Art 178 RLSM", "multiplyByField": "refractoryYears", "subtractValue": 1 } },
+
+    { "id": "q-eq-2", "type": "condition", "position": { "x": 500, "y": 400 }, "data": { "field": "refractoryYears", "operator": "eq", "value": "2", "label": "Faltou exatamente 2 anos?" } },
+    { "id": "a-sub-5x", "type": "action", "position": { "x": 700, "y": 600 }, "data": { "label": "Multa Refratário 2 anos (Substitutiva)", "mult": 5, "amparo": "Art 178 RLSM" } },
+
+    { "id": "q-eq-1", "type": "condition", "position": { "x": 300, "y": 600 }, "data": { "field": "refractoryYears", "operator": "eq", "value": "1", "label": "Faltou apenas 1 ano?" } },
+    { "id": "a-sub-1x", "type": "action", "position": { "x": 500, "y": 800 }, "data": { "label": "Multa Refratário 1 ano", "mult": 1, "amparo": "Art 176 RLSM" } },
+
     { "id": "q1", "type": "condition", "position": { "x": 100, "y": 200 }, "data": { "field": "enlistmentStatus", "operator": "eq", "value": "late", "label": "Atraso no Alistamento?" } },
     { "id": "a1", "type": "action", "position": { "x": -100, "y": 400 }, "data": { "label": "Multa Atraso (1x)", "mult": 1, "amparo": "Art 176 RLSM" } }
   ],
   "edges": [
-    { "id": "e-start-y", "source": "q-check-status", "sourceHandle": "yes", "target": "q-sub-2", "label": "SIM", "animated": true },
+    { "id": "e-start-y", "source": "q-check-status", "sourceHandle": "yes", "target": "q-gt-2", "label": "SIM", "animated": true },
     { "id": "e-start-n", "source": "q-check-status", "sourceHandle": "no", "target": "q1", "label": "NÃO" },
-    { "id": "e1-y", "source": "q-sub-2", "sourceHandle": "yes", "target": "a-sub-2", "label": "SIM" },
-    { "id": "e1-n", "source": "q-sub-2", "sourceHandle": "no", "target": "q-sub-1", "label": "NÃO" },
-    { "id": "e2-y", "source": "q-sub-1", "sourceHandle": "yes", "target": "a-sub-1", "label": "SIM" },
-    { "id": "e2-n", "source": "q-sub-1", "sourceHandle": "no", "target": "q1", "label": "NÃO" },
-    { "id": "e3-y", "source": "q1", "sourceHandle": "yes", "target": "a1", "label": "SIM" }
+
+    { "id": "e-gt2-y", "source": "q-gt-2", "sourceHandle": "yes", "target": "a-mult-extra", "label": "SIM" },
+    { "id": "e-gt2-n", "source": "q-gt-2", "sourceHandle": "no", "target": "q-eq-2", "label": "NÃO" },
+    { "id": "e-gt2-next", "source": "a-mult-extra", "target": "q1" },
+
+    { "id": "e-eq2-y", "source": "q-eq-2", "sourceHandle": "yes", "target": "a-sub-5x", "label": "SIM" },
+    { "id": "e-eq2-n", "source": "q-eq-2", "sourceHandle": "no", "target": "q-eq-1", "label": "NÃO" },
+    { "id": "e-eq2-next", "source": "a-sub-5x", "target": "q1" },
+
+    { "id": "e-eq1-y", "source": "q-eq-1", "sourceHandle": "yes", "target": "a-sub-1x", "label": "SIM" },
+    { "id": "e-eq1-n", "source": "q-eq-1", "sourceHandle": "no", "target": "q1", "label": "NÃO" },
+    { "id": "e-eq1-next", "source": "a-sub-1x", "target": "q1" },
+
+    { "id": "e-atraso-y", "source": "q1", "sourceHandle": "yes", "target": "a1", "label": "SIM" }
   ]
 }
