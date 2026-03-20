@@ -1,0 +1,50 @@
+{
+  "name": "Interpretação por Substituição (Não Cumulativa)",
+  "nodes": [
+    { "id": "q1", "type": "condition", "position": { "x": 400, "y": 0 }, "data": { "field": "enlistmentStatus", "operator": "eq", "value": "late", "label": "Alistamento Atrasado?" } },
+    { "id": "a1", "type": "action", "position": { "x": 50, "y": 200 }, "data": { "label": "Multa Atraso Alistamento", "mult": 1, "amparo": "Art 176 RLSM" } },
+    
+    { "id": "q2", "type": "condition", "position": { "x": 400, "y": 400 }, "data": { "field": "multipleEnlistments", "operator": "eq", "value": "true", "label": "Alistamento Múltiplo?" } },
+    { "id": "a2", "type": "action", "position": { "x": 50, "y": 600 }, "data": { "label": "Multa Alistamento Múltiplo", "mult": 3, "amparo": "Art 177 RLSM" } },
+
+    { "id": "q-sub-3", "type": "condition", "position": { "x": 400, "y": 800 }, "data": { "field": "refractoryYears", "operator": "gt", "value": "2", "label": "Faltou 3 ou mais vezes?" } },
+    { "id": "a-sub-3", "type": "action", "position": { "x": 50, "y": 1000 }, "data": { "label": "Multa Refratário 3+ (Substitutiva)", "mult": 5, "amparo": "Art 178 RLSM", "multiplyByField": "refractoryYears", "subtractValue": 2 } },
+    
+    { "id": "q-sub-2", "type": "condition", "position": { "x": 400, "y": 1200 }, "data": { "field": "refractoryYears", "operator": "eq", "value": "2", "label": "Faltou exatamente 2 vezes?" } },
+    { "id": "a-sub-2", "type": "action", "position": { "x": 50, "y": 1400 }, "data": { "label": "Multa Refratário 2ª Falta (Apenas)", "mult": 5, "amparo": "Art 178 RLSM" } },
+
+    { "id": "q-sub-1", "type": "condition", "position": { "x": 400, "y": 1600 }, "data": { "field": "refractoryYears", "operator": "eq", "value": "1", "label": "Faltou apenas 1 vez?" } },
+    { "id": "a-sub-1", "type": "action", "position": { "x": 50, "y": 1800 }, "data": { "label": "Multa Refratário 1ª Falta (Apenas)", "mult": 1, "amparo": "Art 176 RLSM" } },
+
+    { "id": "q6", "type": "condition", "position": { "x": 400, "y": 2100 }, "data": { "field": "reserveCategory", "operator": "eq", "value": "oficial_mfdv", "label": "É MFDV?" } },
+    { "id": "q6a", "type": "condition", "position": { "x": 200, "y": 2300 }, "data": { "field": "exarMissedYears", "operator": "gt", "value": "0", "label": "Falta EXAR MFDV?" } },
+    { "id": "a6a", "type": "action", "position": { "x": 50, "y": 2500 }, "data": { "label": "Multa EXAR MFDV", "mult": 5, "amparo": "Art. 52 LMFDV", "multiplyByField": "exarMissedYears" } },
+    
+    { "id": "q7a", "type": "condition", "position": { "x": 600, "y": 2300 }, "data": { "field": "exarMissedYears", "operator": "gt", "value": "0", "label": "Falta EXAR Praça?" } },
+    { "id": "a7a", "type": "action", "position": { "x": 450, "y": 2500 }, "data": { "label": "Multa EXAR Praça", "mult": 3, "amparo": "Art. 47 LSM", "multiplyByField": "exarMissedYears" } }
+  ],
+  "edges": [
+    { "id": "e1-y", "source": "q1", "sourceHandle": "yes", "target": "a1", "label": "SIM", "animated": true, "style": { "stroke": "#10b981" } },
+    { "id": "e1-n", "source": "q1", "sourceHandle": "no", "target": "q2", "label": "NÃO" },
+    { "id": "e1-next", "source": "a1", "target": "q2" },
+
+    { "id": "e2-y", "source": "q2", "sourceHandle: "yes", "target": "a2", "label": "SIM", "animated": true },
+    { "id": "e2-n", "source": "q2", "sourceHandle: "no", "target": "q-sub-3", "label": "NÃO" },
+    { "id": "e2-next", "source": "a2", "target": "q-sub-3" },
+
+    { "id": "esub-3-y", "source": "q-sub-3", "sourceHandle": "yes", "target": "a-sub-3", "label": "SIM", "animated": true },
+    { "id": "esub-3-n", "source": "q-sub-3", "sourceHandle": "no", "target": "q-sub-2", "label": "NÃO" },
+    { "id": "esub-3-next", "source": "a-sub-3", "target": "q6" },
+
+    { "id": "esub-2-y", "source": "q-sub-2", "sourceHandle": "yes", "target": "a-sub-2", "label": "SIM", "animated": true },
+    { "id": "esub-2-n", "source": "q-sub-2", "sourceHandle": "no", "target": "q-sub-1", "label": "NÃO" },
+    { "id": "esub-2-next", "source": "a-sub-2", "target": "q6" },
+
+    { "id": "esub-1-y", "source": "q-sub-1", "sourceHandle": "yes", "target": "a-sub-1", "label": "SIM", "animated": true },
+    { "id": "esub-1-n", "source": "q-sub-1", "sourceHandle": "no", "target": "q6", "label": "NÃO" },
+    { "id": "esub-1-next", "source": "a-sub-1", "target": "q6" },
+
+    { "id": "e6-y", "source": "q6", "sourceHandle": "yes", "target": "q6a", "label": "MFDV" },
+    { "id": "e6-n", "source: "q6", "sourceHandle: "no", "target: "q7a", "label: "PRAÇA" }
+  ]
+}
