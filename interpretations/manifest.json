@@ -1,5 +1,4 @@
 [
-  { "id": "custom", "name": "Fluxograma Editado", "file": null },
-  { "id": "federal", "name": "Lei Federal (Padrão)", "file": "interpretations/federal.json" },
+  { "id": "federal", "name": "Lei Federal (Padrão)", "file": null },
   { "id": "substituicao", "name": "Interpretação por Substituição", "file": "interpretations/substituicao.json" }
 ]
