@@ -1,0 +1,4 @@
+[
+  { "id": "federal", "name": "Lei Federal (Padrão)", "file": null },
+  { "id": "substituicao", "name": "Interpretação por Substituição", "file": "interpretations/substituicao.json" }
+]
