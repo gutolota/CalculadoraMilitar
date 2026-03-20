@@ -7,7 +7,7 @@
     { "id": "a-sub-2", "type": "action", "position": { "x": 50, "y": 200 }, "data": { "label": "Multa Refratário (Substituição 5x)", "mult": 5, "amparo": "Art 178 RLSM" } },
 
     { "id": "q-sub-1", "type": "condition", "position": { "x": 400, "y": 400 }, "data": { "field": "refractoryYears", "operator": "eq", "value": "1", "label": "Refratário 1 ano?" } },
-    { "id": "a-sub-1", "type": "action", "position": { "x": 50, "y": 600 }, "data": { "label": "Multa Refratário (Substituição 1x)", "mult": 1, "amparo: "Art 176 RLSM" } },
+    { "id": "a-sub-1", "type": "action", "position": { "x": 50, "y": 600 }, "data": { "label": "Multa Refratário (Substituição 1x)", "mult": 1, "amparo": "Art 176 RLSM" } },
 
     { "id": "q1", "type": "condition", "position": { "x": 400, "y": 800 }, "data": { "field": "enlistmentStatus", "operator": "eq", "value": "late", "label": "Atraso no Alistamento?" } },
     { "id": "a1", "type": "action", "position": { "x": 50, "y": 1000 }, "data": { "label": "Multa Atraso (1x)", "mult": 1, "amparo": "Art 176 RLSM" } }
