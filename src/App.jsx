@@ -19,9 +19,6 @@ function Navigation() {
             <span className="font-black tracking-tighter text-sm md:text-lg uppercase leading-none">
               Calculadora de taxas e multas militares
             </span>
-            <span className="text-[9px] text-green-300 font-bold uppercase tracking-[0.2em]">
-              PRM 03/004 (SANTIAGO-RS)
-            </span>
           </div>
         </div>
 

@@ -479,23 +479,14 @@ export default function CalculatorV2() {
   };
 
   return (
-    <div className="min-h-screen bg-green-50 p-4 md:p-8 font-sans text-slate-900 print:p-0 print:bg-white">
+    <div className="min-h-screen bg-green-50 p-4 pb-24 md:p-8 md:pb-8 font-sans text-slate-900 print:p-0 print:bg-white">
       <div className="max-w-7xl mx-auto space-y-8">
         <header className="bg-green-600 text-white rounded-xl overflow-hidden shadow-2xl border-b-8 border-green-300 relative">
           <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12">
             <ShieldAlert size={120} />
           </div>
-          <div className="p-8 relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
-              <p className="text-green-300 font-black uppercase tracking-[0.3em] text-xs mb-1">
-                PRM 03/004 — Santiago-RS
-              </p>
-              <h1 className="text-3xl font-black uppercase tracking-tight leading-none">
-                Calculadora de taxas e multas
-              </h1>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="p-5 relative z-10 flex flex-wrap gap-3 justify-end items-center">
+            <div className="flex flex-wrap gap-3 w-full sm:w-auto items-center">
               {useFlowEngine && (
                 <div className="flex gap-2">
                   <div className="bg-green-700 p-2 rounded-lg border border-green-300/30 flex items-center gap-2">
@@ -998,29 +989,20 @@ export default function CalculatorV2() {
             </section>
           </div>
 
-          <div className="lg:col-span-5 sticky top-8">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 flex flex-col h-[calc(100vh-6rem)] max-h-[900px]">
-              <div className="bg-white p-8 text-center border-b-2 border-slate-100 relative overflow-hidden">
+          <div className="lg:col-span-5 lg:sticky lg:top-8">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 flex flex-col lg:h-[calc(100vh-6rem)] lg:max-h-[900px]">
+              <div className="bg-white p-6 text-center border-b-2 border-slate-100 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-green-400" />
-                <div className="absolute -top-10 -left-10 opacity-5 grayscale">
-                  <Star size={150} />
-                </div>
                 <div className="space-y-1 relative z-10">
-                  <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">
-                    Ministério da Defesa
-                  </h3>
-                  <h4 className="text-sm font-black uppercase tracking-[0.2em] text-green-700">
-                    Exército Brasileiro
-                  </h4>
-                  <div className="pt-4 flex flex-col items-center">
-                    <div className="w-16 h-1 bg-green-400 mb-4" />
-                    <h2 className="text-xl font-black uppercase tracking-tighter text-slate-800">
+                  <div className="flex flex-col items-center pt-2">
+                    <div className="w-12 h-0.5 bg-green-400 mb-3" />
+                    <h2 className="text-lg font-black uppercase tracking-tighter text-slate-800">
                       Extrato de Recolhimento
                     </h2>
                   </div>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-8 bg-[#FAFAF8] space-y-4">
+              <div className="lg:flex-1 lg:overflow-y-auto p-6 bg-[#FAFAF8] space-y-4">
                 {!calculations.hasItems ? (
                   <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-4 opacity-50">
                     <Search size={48} strokeWidth={1} />
@@ -1059,31 +1041,40 @@ export default function CalculatorV2() {
                   </div>
                 )}
               </div>
-              <div className="bg-white p-8 space-y-6 border-t-2 border-slate-100">
+              <div className="bg-white p-6 space-y-4 border-t-2 border-slate-100">
                 <div className="flex justify-between items-end">
-                  <div className="space-y-1">
-                    <span className="block text-[10px] font-black text-green-600 uppercase tracking-[0.2em]">
-                      Total a Recolher
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className={`text-4xl font-black font-mono tracking-tighter ${calculations.isExempt ? "text-emerald-600" : "text-slate-900"}`}
-                    >
-                      R$ {calculations.total.toFixed(2).replace(".", ",")}
-                    </span>
-                  </div>
+                  <span className="text-[10px] font-black text-green-600 uppercase tracking-[0.2em]">
+                    Total a Recolher
+                  </span>
+                  <span className={`text-3xl font-black font-mono tracking-tighter ${calculations.isExempt ? "text-emerald-600" : "text-slate-900"}`}>
+                    R$ {calculations.total.toFixed(2).replace(".", ",")}
+                  </span>
                 </div>
                 <button
                   onClick={() => window.print()}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-black uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-3 text-xs"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-2xl font-black uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-3 text-xs"
                 >
-                  <FileText size={16} className="text-green-300" /> Imprimir
-                  Comprovante
+                  <FileText size={16} className="text-green-300" /> Imprimir Comprovante
                 </button>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Barra flutuante de total — apenas mobile */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-green-200 shadow-2xl px-4 py-3 flex items-center justify-between gap-4 print:hidden">
+          <div>
+            <p className="text-[9px] font-black text-green-600 uppercase tracking-wider">Total a Recolher</p>
+            <p className={`text-2xl font-black font-mono ${calculations.isExempt ? "text-emerald-600" : "text-slate-900"}`}>
+              R$ {calculations.total.toFixed(2).replace(".", ",")}
+            </p>
+          </div>
+          <button
+            onClick={() => window.print()}
+            className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-black uppercase text-xs flex items-center gap-2 shrink-0"
+          >
+            <FileText size={14} className="text-green-300" /> Imprimir
+          </button>
         </div>
       </div>
     </div>

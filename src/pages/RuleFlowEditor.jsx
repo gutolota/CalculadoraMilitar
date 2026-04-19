@@ -190,32 +190,34 @@ function FlowEditor() {
   };
 
   const actionNodes = nodes.filter(n => n.type === 'action');
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 640;
+  const [showCommandPanel, setShowCommandPanel] = useState(isDesktop);
+  const [showAmparosPanel, setShowAmparosPanel] = useState(isDesktop);
 
   return (
     <div className="h-screen w-full bg-green-50 flex flex-col overflow-hidden font-sans">
-      <header className="bg-green-700 text-white p-5 flex justify-between items-center z-20 border-b-4 border-green-300">
-        <div className="flex items-center gap-5">
-          <div className="bg-green-300 p-3 rounded-2xl">
-            <ShieldAlert className="w-7 h-7 text-green-800" />
+      <header className="bg-green-700 text-white px-3 py-3 flex justify-between items-center z-20 border-b-4 border-green-300 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="bg-green-300 p-2 rounded-xl shrink-0">
+            <ShieldAlert className="w-5 h-5 text-green-800" />
           </div>
-          <div>
-            <h1 className="text-xl font-black tracking-tight uppercase">Mapeamento de Interpretação Jurídica</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] text-green-300 font-bold uppercase tracking-widest">Documento:</span>
-              <input value={ruleName} onChange={e => setRuleName(e.target.value)} className="bg-transparent border-b border-green-600 text-slate-100 text-xs outline-none focus:border-green-300 w-64 font-mono" />
+          <div className="min-w-0">
+            <h1 className="text-sm font-black tracking-tight uppercase leading-tight hidden sm:block">Interpretação Jurídica</h1>
+            <div className="flex items-center gap-1">
+              <input value={ruleName} onChange={e => setRuleName(e.target.value)} className="bg-transparent border-b border-green-600 text-slate-100 text-[10px] outline-none focus:border-green-300 w-36 sm:w-56 font-mono" />
             </div>
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <button onClick={exportJSON} className="flex items-center gap-2 text-green-300 hover:text-white px-4 py-2 rounded-xl transition-all text-xs font-black uppercase tracking-widest border border-green-300/30">
-            <Download size={14} /> Exportar JSON
+        <div className="flex gap-1 sm:gap-2 shrink-0">
+          <button onClick={exportJSON} className="flex items-center gap-1 text-green-300 hover:text-white p-2 sm:px-3 sm:py-2 rounded-lg transition-all text-xs font-black border border-green-300/30" title="Exportar JSON">
+            <Download size={14} /> <span className="hidden sm:inline">Exportar</span>
           </button>
-          <button onClick={() => { if(window.confirm('Resetar fluxo para o padrão federal?')) loadDefaultFlow(); }} className="flex items-center gap-2 text-slate-400 hover:text-rose-400 px-4 py-2 rounded-xl transition-all text-xs font-black uppercase tracking-widest">
-            <RefreshCw size={14} /> Resetar Padrão
+          <button onClick={() => { if(window.confirm('Resetar fluxo para o padrão federal?')) loadDefaultFlow(); }} className="flex items-center gap-1 text-slate-400 hover:text-rose-400 p-2 sm:px-3 sm:py-2 rounded-lg transition-all text-xs font-black" title="Resetar Padrão">
+            <RefreshCw size={14} /> <span className="hidden sm:inline">Resetar</span>
           </button>
-          <button onClick={saveFlow} className="flex items-center gap-2 bg-green-300 hover:bg-green-200 px-8 py-3 rounded-2xl text-xs font-black text-green-800 shadow-xl transition-all uppercase tracking-[0.2em]">
-            <Save size={18} /> Sincronizar Regras
+          <button onClick={saveFlow} className="flex items-center gap-1 bg-green-300 hover:bg-green-200 px-3 py-2 sm:px-5 rounded-xl text-xs font-black text-green-800 shadow-lg transition-all">
+            <Save size={14} /> <span className="hidden xs:inline">Sincronizar</span>
           </button>
         </div>
       </header>
@@ -225,94 +227,103 @@ function FlowEditor() {
           <Background color="#bbf7d0" gap={30} size={1} />
           <Controls />
 
-          <Panel position="top-left" className="bg-white/95 backdrop-blur-md p-6 rounded-[2rem] shadow-2xl border-2 border-green-700 flex flex-col gap-5 w-80 m-6">
-            <div className="space-y-1 text-center">
-              <h3 className="text-xs font-black text-green-700 uppercase tracking-widest">Painel de Comando</h3>
-            </div>
+          <Panel position="top-left" className="m-2 sm:m-4">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-green-700 overflow-hidden w-56 sm:w-72">
+              <button
+                onClick={() => setShowCommandPanel(v => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-green-700 text-white hover:bg-green-600 transition-colors"
+              >
+                <span className="text-xs font-black uppercase tracking-widest">Painel de Comando</span>
+                <span className="text-green-300 text-lg leading-none">{showCommandPanel ? '−' : '+'}</span>
+              </button>
 
-            <button onClick={() => addNode('condition')} className="flex items-center gap-4 bg-white hover:bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 hover:border-green-600 text-green-800 transition-all shadow-sm active:scale-95">
-              <div className="bg-green-600 text-green-200 p-3 rounded-xl shadow-md">
-                <Settings2 size={24} />
-              </div>
-              <div className="text-left leading-tight">
-                <div className="font-black text-xs uppercase tracking-tight tracking-tighter">Nova Condição</div>
-                <div className="text-[9px] text-slate-400 font-bold uppercase mt-1 tracking-tighter">Validação Jurídica</div>
-              </div>
-            </button>
+              {showCommandPanel && (
+                <div className="p-3 flex flex-col gap-2">
+                  <button onClick={() => addNode('condition')} className="flex items-center gap-3 bg-white hover:bg-slate-50 px-3 py-3 rounded-xl border-2 border-slate-100 hover:border-green-600 text-green-800 transition-all shadow-sm active:scale-95">
+                    <div className="bg-green-600 text-green-200 p-2 rounded-lg shrink-0">
+                      <Settings2 size={18} />
+                    </div>
+                    <div className="text-left leading-tight">
+                      <div className="font-black text-xs uppercase">Nova Condição</div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase">Validação Jurídica</div>
+                    </div>
+                  </button>
 
-            <button onClick={() => addNode('action')} className="flex items-center gap-4 bg-white hover:bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 hover:border-green-600 text-green-800 transition-all shadow-sm active:scale-95">
-              <div className="bg-green-300 text-green-800 p-3 rounded-xl shadow-md">
-                <DollarSign size={24} />
-              </div>
-              <div className="text-left leading-tight">
-                <div className="font-black text-xs uppercase tracking-tight tracking-tighter">Nova Penalidade</div>
-                <div className="text-[9px] text-slate-400 font-bold uppercase mt-1 tracking-tighter">Cálculo Pecuniário</div>
-              </div>
-            </button>
+                  <button onClick={() => addNode('action')} className="flex items-center gap-3 bg-white hover:bg-slate-50 px-3 py-3 rounded-xl border-2 border-slate-100 hover:border-green-600 text-green-800 transition-all shadow-sm active:scale-95">
+                    <div className="bg-green-300 text-green-800 p-2 rounded-lg shrink-0">
+                      <DollarSign size={18} />
+                    </div>
+                    <div className="text-left leading-tight">
+                      <div className="font-black text-xs uppercase">Nova Penalidade</div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase">Cálculo Pecuniário</div>
+                    </div>
+                  </button>
 
-            <button onClick={() => addNode('system')} className="flex items-center gap-4 bg-green-700 hover:bg-green-600 p-5 rounded-2xl border-2 border-green-300 text-white transition-all shadow-lg active:scale-95">
-              <div className="bg-green-300 text-green-800 p-3 rounded-xl shadow-md">
-                <Cpu size={24} />
-              </div>
-              <div className="text-left leading-tight">
-                <div className="font-black text-xs uppercase tracking-tight tracking-tighter">Parâmetros Globais</div>
-                <div className="text-[9px] text-green-300 font-bold uppercase mt-1">Constantes do Sistema</div>
-              </div>
-            </button>
-
-            <div className="bg-green-700 rounded-2xl p-4 border-2 border-green-300 space-y-3">
-              <p className="text-[9px] text-slate-300 font-medium leading-relaxed uppercase">
-                Para corrigir o erro de multas indevidas: Clique em <strong>RESETAR PADRÃO</strong> e depois em <strong>SINCRONIZAR REGRAS</strong>.
-              </p>
+                  <button onClick={() => addNode('system')} className="flex items-center gap-3 bg-green-700 hover:bg-green-600 px-3 py-3 rounded-xl border-2 border-green-300 text-white transition-all shadow-lg active:scale-95">
+                    <div className="bg-green-300 text-green-800 p-2 rounded-lg shrink-0">
+                      <Cpu size={18} />
+                    </div>
+                    <div className="text-left leading-tight">
+                      <div className="font-black text-xs uppercase">Parâmetros Globais</div>
+                      <div className="text-[9px] text-green-300 font-bold uppercase">Constantes do Sistema</div>
+                    </div>
+                  </button>
+                </div>
+              )}
             </div>
           </Panel>
 
-          <Panel position="top-right" className="m-6">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-green-600 w-80 overflow-hidden">
-              <div className="bg-green-700 px-4 py-3 flex items-center gap-2 border-b-2 border-green-300">
-                <BookOpen size={15} className="text-green-300" />
-                <span className="text-[10px] font-black text-white uppercase tracking-widest flex-1">Amparos do Fluxo</span>
+          <Panel position="top-right" className="m-2 sm:m-4">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-green-600 overflow-hidden w-56 sm:w-72">
+              <button
+                onClick={() => setShowAmparosPanel(v => !v)}
+                className="w-full flex items-center gap-2 px-4 py-3 bg-green-700 text-white hover:bg-green-600 transition-colors"
+              >
+                <BookOpen size={15} className="text-green-300 shrink-0" />
+                <span className="text-[10px] font-black uppercase tracking-widest flex-1 text-left">Amparos do Fluxo</span>
                 <span className="text-[9px] font-mono text-green-300 bg-green-800 px-1.5 py-0.5 rounded">{actionNodes.length}</span>
-              </div>
-              {actionNodes.length === 0 ? (
-                <div className="p-4 text-center text-[10px] text-slate-400 font-bold uppercase">Nenhuma ação no fluxo</div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-[1fr_40px_1fr] gap-1 px-3 py-1.5 bg-green-50 border-b border-green-100">
-                    <span className="text-[8px] font-black text-green-700 uppercase tracking-widest">Ocasião</span>
-                    <span className="text-[8px] font-black text-green-700 uppercase tracking-widest text-center">Mult</span>
-                    <span className="text-[8px] font-black text-green-700 uppercase tracking-widest">Amparo</span>
-                  </div>
-                  <div className="divide-y divide-green-50 max-h-80 overflow-y-auto">
-                    {actionNodes.map(n => (
-                      <div key={n.id} className="grid grid-cols-[1fr_40px_1fr] gap-1 items-center px-3 py-2 hover:bg-green-50 transition-colors">
-                        <input
-                          className="nodrag text-[10px] font-bold text-slate-700 bg-transparent outline-none focus:bg-white focus:border focus:border-green-300 focus:rounded px-1 truncate w-full"
-                          value={n.data.label || ''}
-                          onChange={(e) => onNodeDataChange(n.id, 'label', e.target.value)}
-                          title={n.data.label}
-                        />
-                        <div className="flex items-center gap-0.5 justify-center">
+                <span className="text-green-300 text-lg leading-none ml-1">{showAmparosPanel ? '−' : '+'}</span>
+              </button>
+
+              {showAmparosPanel && (
+                actionNodes.length === 0 ? (
+                  <div className="p-4 text-center text-[10px] text-slate-400 font-bold uppercase">Nenhuma ação no fluxo</div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-[1fr_36px_1fr] gap-1 px-3 py-1.5 bg-green-50 border-b border-green-100">
+                      <span className="text-[8px] font-black text-green-700 uppercase tracking-widest">Ocasião</span>
+                      <span className="text-[8px] font-black text-green-700 uppercase tracking-widest text-center">Mult</span>
+                      <span className="text-[8px] font-black text-green-700 uppercase tracking-widest">Amparo</span>
+                    </div>
+                    <div className="divide-y divide-green-50 max-h-64 sm:max-h-80 overflow-y-auto">
+                      {actionNodes.map(n => (
+                        <div key={n.id} className="grid grid-cols-[1fr_36px_1fr] gap-1 items-center px-3 py-2 hover:bg-green-50 transition-colors">
+                          <input
+                            className="nodrag text-[10px] font-bold text-slate-700 bg-transparent outline-none focus:bg-white focus:border focus:border-green-300 focus:rounded px-1 truncate w-full"
+                            value={n.data.label || ''}
+                            onChange={(e) => onNodeDataChange(n.id, 'label', e.target.value)}
+                            title={n.data.label}
+                          />
                           <input
                             type="number"
-                            className="nodrag nowheel w-8 text-[10px] font-mono font-black text-green-800 bg-green-50 border border-green-200 rounded text-center outline-none focus:border-green-600 px-0.5"
+                            className="nodrag nowheel w-full text-[10px] font-mono font-black text-green-800 bg-green-50 border border-green-200 rounded text-center outline-none focus:border-green-600 px-0.5"
                             value={n.data.mult ?? 0}
                             onChange={(e) => onNodeDataChange(n.id, 'mult', Number(e.target.value))}
                           />
+                          <input
+                            className="nodrag text-[9px] font-mono text-green-700 bg-green-50 border border-green-100 rounded px-1 py-0.5 outline-none focus:border-green-500 w-full"
+                            value={n.data.amparo || ''}
+                            onChange={(e) => onNodeDataChange(n.id, 'amparo', e.target.value)}
+                            placeholder="Art..."
+                          />
                         </div>
-                        <input
-                          className="nodrag text-[9px] font-mono text-green-700 bg-green-50 border border-green-100 rounded px-1 py-0.5 outline-none focus:border-green-500 w-full"
-                          value={n.data.amparo || ''}
-                          onChange={(e) => onNodeDataChange(n.id, 'amparo', e.target.value)}
-                          placeholder="Art..."
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="px-3 py-2 bg-green-50 border-t border-green-100">
-                    <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Edite e clique em Sincronizar Regras para salvar</p>
-  </div>
-                </>
+                      ))}
+                    </div>
+                    <div className="px-3 py-2 bg-green-50 border-t border-green-100">
+                      <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Edite e clique em Sincronizar para salvar</p>
+                    </div>
+                  </>
+                )
               )}
             </div>
           </Panel>
