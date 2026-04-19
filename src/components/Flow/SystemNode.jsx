@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Handle, Position } from 'reactflow';
-import { Cpu, Calendar, ShieldCheck, Clock, Trash2 } from 'lucide-react';
+import { Cpu, Calendar, ShieldCheck, Clock, Trash2, MapPin } from 'lucide-react';
 
 export default memo(({ data, isConnectable }) => {
   return (
@@ -24,34 +24,42 @@ export default memo(({ data, isConnectable }) => {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-white">
             <Calendar size={14} className="text-[#D4AF37]" />
-            <span className="text-[10px] font-bold uppercase">Idade de Alistamento:</span>
+            <span className="text-[10px] font-bold uppercase">Idade Alistamento:</span>
           </div>
-          <div className="flex items-center gap-2">
-            <input 
-              type="number" 
-              className="w-16 bg-[#F4F4F0]/10 border border-[#D4AF37]/30 text-white font-mono text-xs p-1 rounded text-center"
-              value={data.militaryAge || 18}
-              onChange={(e) => data.onChange('militaryAge', Number(e.target.value))}
-            />
-            <span className="text-[8px] text-slate-400 uppercase">anos</span>
-          </div>
+          <input 
+            type="number" 
+            className="nodrag nowheel w-16 bg-[#F4F4F0]/10 border border-[#D4AF37]/30 text-white font-mono text-xs p-1 rounded text-center outline-none focus:border-[#D4AF37]"
+            value={data.militaryAge || 18}
+            onChange={(e) => data.onChange('militaryAge', Number(e.target.value))}
+          />
         </div>
 
         {/* Limite Refratário */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-white">
             <ShieldCheck size={14} className="text-[#D4AF37]" />
-            <span className="text-[10px] font-bold uppercase">Teto de Refratário:</span>
+            <span className="text-[10px] font-bold uppercase">Teto Refratário:</span>
           </div>
-          <div className="flex items-center gap-2">
-            <input 
-              type="number" 
-              className="w-16 bg-[#F4F4F0]/10 border border-[#D4AF37]/30 text-white font-mono text-xs p-1 rounded text-center"
-              value={data.maxRefractoryYears || 10}
-              onChange={(e) => data.onChange('maxRefractoryYears', Number(e.target.value))}
-            />
-            <span className="text-[8px] text-slate-400 uppercase">anos</span>
+          <input 
+            type="number" 
+            className="nodrag nowheel w-16 bg-[#F4F4F0]/10 border border-[#D4AF37]/30 text-white font-mono text-xs p-1 rounded text-center outline-none focus:border-[#D4AF37]"
+            value={data.maxRefractoryYears || 10}
+            onChange={(e) => data.onChange('maxRefractoryYears', Number(e.target.value))}
+          />
+        </div>
+
+        {/* NOVO: Limite EXAR */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-white">
+            <MapPin size={14} className="text-[#D4AF37]" />
+            <span className="text-[10px] font-bold uppercase">Teto Faltas EXAR:</span>
           </div>
+          <input 
+            type="number" 
+            className="nodrag nowheel w-16 bg-[#F4F4F0]/10 border border-[#D4AF37]/30 text-white font-mono text-xs p-1 rounded text-center outline-none focus:border-[#D4AF37]"
+            value={data.maxExarYears || 5}
+            onChange={(e) => data.onChange('maxExarYears', Number(e.target.value))}
+          />
         </div>
 
         {/* Prazo de Comunicação */}
@@ -60,20 +68,17 @@ export default memo(({ data, isConnectable }) => {
             <Clock size={14} className="text-[#D4AF37]" />
             <span className="text-[10px] font-bold uppercase">Prazo Comunicação:</span>
           </div>
-          <div className="flex items-center gap-2">
-            <input 
-              type="number" 
-              className="w-16 bg-[#F4F4F0]/10 border border-[#D4AF37]/30 text-white font-mono text-xs p-1 rounded text-center"
-              value={data.communicationDeadlineDays || 60}
-              onChange={(e) => data.onChange('communicationDeadlineDays', Number(e.target.value))}
-            />
-            <span className="text-[8px] text-slate-400 uppercase">dias</span>
-          </div>
+          <input 
+            type="number" 
+            className="nodrag nowheel w-16 bg-[#F4F4F0]/10 border border-[#D4AF37]/30 text-white font-mono text-xs p-1 rounded text-center outline-none focus:border-[#D4AF37]"
+            value={data.communicationDeadlineDays || 60}
+            onChange={(e) => data.onChange('communicationDeadlineDays', Number(e.target.value))}
+          />
         </div>
       </div>
 
-      <div className="p-2 bg-[#D4AF37]/10 text-center">
-        <p className="text-[8px] text-[#D4AF37] font-bold uppercase tracking-tighter">Este nó define as constantes de cálculo</p>
+      <div className="p-2 bg-[#D4AF37]/10 text-center text-[#D4AF37] font-black text-[7px] uppercase tracking-widest">
+        Configurações Mestres do Sistema
       </div>
     </div>
   );

@@ -52,7 +52,7 @@ export default memo(({ data, isConnectable }) => {
         <div className="space-y-1">
           <label className="text-[9px] font-black text-[#4B5320] uppercase tracking-tighter">Se o campo:</label>
           <select 
-            className="w-full text-xs font-bold bg-white border-2 border-slate-200 rounded p-2 outline-none focus:border-[#4B5320] appearance-none cursor-pointer"
+            className="nodrag w-full text-xs font-bold bg-white border-2 border-slate-200 rounded p-2 outline-none focus:border-[#4B5320] appearance-none cursor-pointer"
             value={data.field || ''}
             onChange={(e) => data.onChange('field', e.target.value)}
           >
@@ -67,7 +67,7 @@ export default memo(({ data, isConnectable }) => {
           <div className="flex-1 space-y-1">
             <label className="text-[9px] font-black text-[#4B5320] uppercase tracking-tighter">Lógica:</label>
             <select 
-              className="w-full text-[10px] font-bold bg-white border-2 border-slate-200 rounded p-2 outline-none focus:border-[#4B5320]"
+              className="nodrag w-full text-[10px] font-bold bg-white border-2 border-slate-200 rounded p-2 outline-none focus:border-[#4B5320]"
               value={data.operator || 'eq'}
               onChange={(e) => data.onChange('operator', e.target.value)}
             >
@@ -79,7 +79,7 @@ export default memo(({ data, isConnectable }) => {
             <label className="text-[9px] font-black text-[#4B5320] uppercase tracking-tighter">Valor:</label>
             {currentField?.options ? (
               <select 
-                className="w-full text-[10px] font-bold bg-white border-2 border-[#D4AF37]/30 rounded p-2 outline-none focus:border-[#4B5320]"
+                className="nodrag w-full text-[10px] font-bold bg-white border-2 border-[#D4AF37]/30 rounded p-2 outline-none focus:border-[#4B5320]"
                 value={data.value || ''}
                 onChange={(e) => data.onChange('value', e.target.value)}
               >
@@ -91,7 +91,7 @@ export default memo(({ data, isConnectable }) => {
             ) : (
               <input 
                 type="number"
-                className="w-full text-xs font-mono font-bold bg-white border-2 border-[#D4AF37]/30 rounded p-2 outline-none focus:border-[#4B5320]"
+                className="nodrag nowheel w-full text-xs font-mono font-bold bg-white border-2 border-[#D4AF37]/30 rounded p-2 outline-none focus:border-[#4B5320]"
                 placeholder="0"
                 value={data.value || ''}
                 onChange={(e) => data.onChange('value', e.target.value)}

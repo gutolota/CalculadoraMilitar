@@ -27,7 +27,7 @@ export default memo(({ data, isConnectable }) => {
         <div className="space-y-1">
           <label className="text-[9px] font-black text-[#4B5320] uppercase tracking-tighter">Descrição Oficial:</label>
           <input 
-            className="w-full text-xs font-bold bg-[#F4F4F0] border-2 border-[#D4AF37]/20 rounded p-2 outline-none focus:border-[#4B5320]" 
+            className="nodrag w-full text-xs font-bold bg-[#F4F4F0] border-2 border-[#D4AF37]/20 rounded p-2 outline-none focus:border-[#4B5320]" 
             value={data.label || ''}
             onChange={(e) => data.onChange('label', e.target.value)}
           />
@@ -36,14 +36,14 @@ export default memo(({ data, isConnectable }) => {
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-[#F4F4F0] p-2 rounded-xl border-2 border-[#D4AF37]/10">
             <div className="text-[8px] font-black text-[#4B5320] uppercase">Peso (Mult)</div>
-            <input type="number" className="text-sm font-mono font-black bg-transparent outline-none w-full text-[#3A3F1C]" 
+            <input type="number" className="nodrag nowheel text-sm font-mono font-black bg-transparent outline-none w-full text-[#3A3F1C]" 
               value={data.mult || 0}
               onChange={(e) => data.onChange('mult', Number(e.target.value))}
             />
           </div>
           <div className="bg-[#F4F4F0] p-2 rounded-xl border-2 border-[#D4AF37]/10">
             <div className="text-[8px] font-black text-[#4B5320] uppercase">Amparo Legal</div>
-            <input className="text-[10px] font-mono font-bold bg-transparent outline-none w-full text-[#4B5320]" 
+            <input className="nodrag text-[10px] font-mono font-bold bg-transparent outline-none w-full text-[#4B5320]" 
               placeholder="Art..."
               value={data.amparo || ''}
               onChange={(e) => data.onChange('amparo', e.target.value)}
@@ -58,7 +58,7 @@ export default memo(({ data, isConnectable }) => {
           </div>
           
           <select 
-            className="w-full text-[10px] font-bold bg-white/10 text-white border border-[#D4AF37]/30 rounded p-1 outline-none"
+            className="nodrag w-full text-[10px] font-bold bg-white/10 text-white border border-[#D4AF37]/30 rounded p-1 outline-none"
             value={data.multiplyByField || ''}
             onChange={(e) => data.onChange('multiplyByField', e.target.value)}
           >
@@ -73,7 +73,7 @@ export default memo(({ data, isConnectable }) => {
               <span className="text-[9px] font-bold text-[#D4AF37] uppercase">Abatimento:</span>
               <input 
                 type="number" 
-                className="w-16 text-[10px] font-mono bg-white/5 text-white border border-[#D4AF37]/20 rounded p-1 text-center"
+                className="nodrag nowheel w-16 text-[10px] font-mono bg-white/5 text-white border border-[#D4AF37]/20 rounded p-1 text-center outline-none focus:border-[#D4AF37]"
                 value={data.subtractValue || 0}
                 onChange={(e) => data.onChange('subtractValue', Number(e.target.value))}
               />

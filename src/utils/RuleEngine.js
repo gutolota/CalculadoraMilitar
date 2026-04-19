@@ -6,21 +6,21 @@
 export const processRules = (flow, userData, baseFee) => {
   if (!flow || !flow.nodes) return { breakdown: [], total: 0, settings: {} };
 
-  const { nodes, edges } = flow;
+  const { nodes, edges = [] } = flow;
   let breakdown = [];
   let total = 0;
   let visitedNodes = new Set();
   
-  // 1. Extrair Parâmetros Globais (se houver)
+  // 1. Extrair Parâmetros Globais
   const systemNode = nodes.find(n => n.type === 'system');
-  const settings = systemNode ? systemNode.data : { militaryAge: 18, maxRefractoryYears: 10, communicationDeadlineDays: 60 };
+  const settings = systemNode ? systemNode.data : { militaryAge: 18, maxRefractoryYears: 10, maxExarYears: 5, communicationDeadlineDays: 60 };
 
-  // 2. Encontrar nós iniciais para o fluxo de lógica (ignorando o nó de sistema)
+  // 2. Encontrar nós iniciais
   const targetNodeIds = new Set(edges.map(e => e.target));
-  let currentNodes = nodes.filter(n => !targetNodeIds.has(n.id) && n.type !== 'system');
+  let currentNodes = nodes.filter(n => !targetNodeIds.has(n.id) && n.type === 'condition');
 
   if (currentNodes.length === 0 && nodes.length > 0) {
-    const firstLogicNode = nodes.find(n => n.type !== 'system');
+    const firstLogicNode = nodes.find(n => n.type === 'condition');
     if (firstLogicNode) currentNodes = [firstLogicNode];
   }
 
@@ -57,7 +57,7 @@ export const processRules = (flow, userData, baseFee) => {
       const { label, mult, amparo, multiplyByField, subtractValue } = node.data;
       let finalMult = Number(mult);
 
-      if (multiplyByField && userData[multiplyByField]) {
+      if (multiplyByField && userData[multiplyByField] !== undefined) {
         const factor = Math.max(0, Number(userData[multiplyByField]) - (Number(subtractValue) || 0));
         finalMult = finalMult * factor;
       }

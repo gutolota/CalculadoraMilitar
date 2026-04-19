@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Calculator, AlertCircle, CheckCircle, Receipt, Settings, User, FileText, ShieldAlert, Calendar, SlidersHorizontal, ChevronDown, ChevronUp, RefreshCw, Info, Workflow, Star, ShieldCheck, MapPin, Search, FolderTree, Cpu } from 'lucide-react';
+import { Calculator, AlertCircle, CheckCircle, Receipt, Settings, User, FileText, ShieldAlert, Calendar, SlidersHorizontal, ChevronDown, ChevronUp, RefreshCw, Info, Workflow, Star, ShieldCheck, MapPin, Search, FolderTree, Cpu, Trash2, Lock } from 'lucide-react';
 import { processRules } from '../utils/RuleEngine';
 
 const DEFAULT_RULES = {
@@ -35,8 +35,7 @@ export default function CalculatorV2() {
   const [availablePatterns, setAvailablePatterns] = useState([{ id: 'custom', name: 'Fluxograma Editado', file: null }]);
   const [selectedPatternId, setSelectedPatternId] = useState('custom');
   
-  // Parâmetros de sistema extraídos do fluxo ativo
-  const [systemSettings, setSystemSettings] = useState({ militaryAge: 18, maxRefractoryYears: 10, communicationDeadlineDays: 60 });
+  const [systemSettings, setSystemSettings] = useState({ militaryAge: 18, maxRefractoryYears: 10, maxExarYears: 5, communicationDeadlineDays: 60 });
 
   useEffect(() => {
     const fetchManifest = async () => {
@@ -44,11 +43,7 @@ export default function CalculatorV2() {
         const response = await fetch('interpretations/manifest.json');
         if (response.ok) {
           const data = await response.json();
-          // Define a lista completa de uma vez para evitar duplicações por re-render do useEffect
-          setAvailablePatterns([
-            { id: 'custom', name: 'Fluxograma Editado', file: null },
-            ...data.filter(d => d.id !== 'custom')
-          ]);
+          setAvailablePatterns([{ id: 'custom', name: 'Fluxograma Editado', file: null }, ...data.filter(d => d.id !== 'custom')]);
         }
       } catch (e) {}
     };
@@ -60,11 +55,12 @@ export default function CalculatorV2() {
       if (selectedPatternId === 'custom') {
         const saved = localStorage.getItem('military_flow_rules');
         if (saved) {
-          const data = JSON.parse(saved);
-          setActiveFlow(data);
-          // Buscar nó de sistema no JSON salvo
-          const sys = data.nodes.find(n => n.type === 'system');
-          if (sys) setSystemSettings(sys.data);
+          try {
+            const data = JSON.parse(saved);
+            setActiveFlow(data);
+            const sys = data.nodes?.find(n => n.type === 'system');
+            if (sys) setSystemSettings(sys.data);
+          } catch (e) {}
         }
       } else {
         const pattern = availablePatterns.find(p => p.id === selectedPatternId);
@@ -74,7 +70,7 @@ export default function CalculatorV2() {
             if (response.ok) {
               const data = await response.json();
               setActiveFlow(data);
-              const sys = data.nodes.find(n => n.type === 'system');
+              const sys = data.nodes?.find(n => n.type === 'system');
               if (sys) setSystemSettings(sys.data);
             }
           } catch (e) {}
@@ -118,7 +114,18 @@ export default function CalculatorV2() {
   const [taxRequests, setTaxRequests] = useState({ cdi: false, cdsa: false, ci: false, cr: false, csm: false, adiamento: false });
   const [lostDocs, setLostDocs] = useState({ cr_csm: false, cdi_ci_cdsa: false });
 
-  // Cálculo de refratário baseado nos novos parâmetros dinâmicos
+  // --- TRAVAS DE LÓGICA (DEMANDA EXAR) ---
+  const isExarActive = exarMissedYears > 0;
+
+  useEffect(() => {
+    if (isExarActive) {
+      // Limpar taxas de emissão se EXAR estiver habilitado
+      setTaxRequests({ cdi: false, cdsa: false, ci: false, cr: false, csm: false, adiamento: false });
+      // Limpar extravios que não sejam CR
+      if (lostDocs.cdi_ci_cdsa) setLostDocs(prev => ({ ...prev, cdi_ci_cdsa: false }));
+    }
+  }, [isExarActive]);
+
   useEffect(() => {
     const currentYear = new Date().getFullYear();
     const age = currentYear - birthYear;
@@ -164,19 +171,21 @@ export default function CalculatorV2() {
     if (mfdvLateDiploma) { const rule = rules.mfdvDiploma; breakdown.push({ label: 'Atraso Apresentação Diploma', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
     if (!isExtravioDisabled) {
       if (lostDocs.cr_csm) { const rule = rules.extravioCrCsm; breakdown.push({ label: 'Extravio de CR/CSM', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
-      if (lostDocs.cdi_ci_cdsa) { const rule = rules.extravioCdiCiCdsa; breakdown.push({ label: 'Extravio de CDI/CI/CDSA', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
+      if (!isExarActive && lostDocs.cdi_ci_cdsa) { const rule = rules.extravioCdiCiCdsa; breakdown.push({ label: 'Extravio de CDI/CI/CDSA', amparo: rule.amparo, mult: rule.mult, amount: rule.mult * baseFee }); total += rule.mult * baseFee; }
     }
     const getEmissionMult = (m) => (certificateType === 'analogico' && analogLegible) ? 0 : m;
-    if (taxRequests.cdi) { const r = rules.taxaCdi; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CDI', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
-    if (taxRequests.cdsa) { const r = rules.taxaCdsa; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CDSA', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
-    if (taxRequests.ci) { const r = rules.taxaCi; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CI', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
-    if (taxRequests.cr) { const r = rules.taxaCr; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CR', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
-    if (taxRequests.csm) { const r = rules.taxaCsm; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CSM', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
-    if (taxRequests.adiamento) { const r = rules.taxaAdiamento; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Adiamento Incorporação', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
+    if (!isExarActive) {
+      if (taxRequests.cdi) { const r = rules.taxaCdi; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CDI', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
+      if (taxRequests.cdsa) { const r = rules.taxaCdsa; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CDSA', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
+      if (taxRequests.ci) { const r = rules.taxaCi; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CI', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
+      if (taxRequests.cr) { const r = rules.taxaCr; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CR', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
+      if (taxRequests.csm) { const r = rules.taxaCsm; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Requerer CSM', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
+      if (taxRequests.adiamento) { const r = rules.taxaAdiamento; const m = getEmissionMult(r.mult); breakdown.push({ label: 'Adiamento Incorporação', amparo: r.amparo, mult: m, amount: m * baseFee }); total += m * baseFee; }
+    }
     const isExempt = exemption !== 'none';
     if (isExempt && total > 0) { breakdown.push({ label: `Isenção Legal`, amparo: 'Art 225 RLSM', mult: 0, amount: -total }); total = 0; }
     return { breakdown, total: Math.max(0, total), isExempt, hasItems: breakdown.length > 0 };
-  }, [baseFee, rules, enlistmentStatus, multipleEnlistments, selectionStatus, refractoryYears, reserveCategory, exarMissedYears, missedConvocacao, missedResidencia, mfdvMissedRenewals, mfdvLateDiploma, lostDocs, taxRequests, exemption, certificateType, analogLegible, isExtravioDisabled, useFlowEngine, activeFlow]);
+  }, [baseFee, rules, enlistmentStatus, multipleEnlistments, selectionStatus, refractoryYears, reserveCategory, exarMissedYears, missedConvocacao, missedResidencia, mfdvMissedRenewals, mfdvLateDiploma, lostDocs, taxRequests, exemption, certificateType, analogLegible, isExtravioDisabled, useFlowEngine, activeFlow, isExarActive]);
 
   const handleTaxToggle = (key, isChecked) => {
     if (isChecked) { setTaxRequests({ cdi: false, cdsa: false, ci: false, cr: false, csm: false, adiamento: false, [key]: true }); } 
@@ -210,15 +219,24 @@ export default function CalculatorV2() {
             
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               {useFlowEngine && (
-                <div className="bg-[#3A3F1C] p-2 rounded-lg border border-[#D4AF37]/30 flex items-center gap-2">
-                  <FolderTree size={14} className="text-[#D4AF37]" />
-                  <select 
-                    value={selectedPatternId} 
-                    onChange={(e) => setSelectedPatternId(e.target.value)}
-                    className="bg-transparent text-white text-[10px] font-black uppercase outline-none cursor-pointer"
+                <div className="flex gap-2">
+                  <div className="bg-[#3A3F1C] p-2 rounded-lg border border-[#D4AF37]/30 flex items-center gap-2">
+                    <FolderTree size={14} className="text-[#D4AF37]" />
+                    <select 
+                      value={selectedPatternId} 
+                      onChange={(e) => setSelectedPatternId(e.target.value)}
+                      className="bg-transparent text-white text-[10px] font-black uppercase outline-none cursor-pointer"
+                    >
+                      {availablePatterns.map(p => <option key={p.id} value={p.id} className="text-slate-900">{p.name}</option>)}
+                    </select>
+                  </div>
+                  <button
+                    onClick={() => { if(window.confirm('Isso limpará as regras personalizadas do navegador para corrigir erros. Confirmar?')) { localStorage.removeItem('military_flow_rules'); window.location.reload(); } }}
+                    className="p-3 bg-rose-900/50 hover:bg-rose-900 border border-rose-700/50 rounded-lg text-rose-200 transition-all"
+                    title="Limpar Memória de Regras (Corrigir Erros)"
                   >
-                    {availablePatterns.map(p => <option key={p.id} value={p.id} className="text-slate-900">{p.name}</option>)}
-                  </select>
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               )}
               <button
@@ -239,17 +257,16 @@ export default function CalculatorV2() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-7 space-y-8 print:hidden">
             
-            {/* INFORMATIVO DE PARÂMETROS ATIVOS (SE NO MODO DINÂMICO) */}
             {useFlowEngine && (
               <div className="bg-[#3A3F1C] text-white p-4 rounded-xl border-l-8 border-[#D4AF37] flex items-center justify-between animate-in fade-in duration-500">
                 <div className="flex items-center gap-4">
                   <div className="p-2 bg-[#D4AF37] rounded-lg text-[#3A3F1C]"><Cpu size={20} /></div>
                   <div>
                     <p className="text-[10px] font-black uppercase text-[#D4AF37]">Parâmetros do Fluxo Ativo</p>
-                    <p className="text-xs font-bold">Idade: {systemSettings.militaryAge} anos | Teto Refratário: {systemSettings.maxRefractoryYears} anos</p>
+                    <p className="text-xs font-bold uppercase tracking-tight">Idade: {systemSettings.militaryAge} | Teto Refr: {systemSettings.maxRefractoryYears} | Teto EXAR: {systemSettings.maxExarYears}</p>
                   </div>
                 </div>
-                <div className="text-[9px] font-mono text-slate-400 bg-black/20 p-2 rounded tracking-tighter">ENGINE V3.0</div>
+                <div className="text-[9px] font-mono text-slate-400 bg-black/20 p-2 rounded tracking-tighter uppercase">V3.5 Dependency-Aware</div>
               </div>
             )}
 
@@ -328,7 +345,7 @@ export default function CalculatorV2() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-white border-2 border-slate-100 rounded-xl flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-500 uppercase">Faltas EXAR:</span>
-                      <input type="number" value={exarMissedYears} onChange={(e) => setExarMissedYears(Number(e.target.value))} className="w-12 text-center font-mono font-black text-slate-700 outline-none" />
+                      <input type="number" min="0" max={systemSettings.maxExarYears} value={exarMissedYears} onChange={(e) => setExarMissedYears(Number(e.target.value))} className="w-12 text-center font-mono font-black text-slate-700 outline-none" />
                     </div>
                     <button onClick={() => setMissedConvocacao(!missedConvocacao)} className={`p-4 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-between border-2 ${missedConvocacao ? 'bg-rose-700 border-rose-700 text-white shadow-lg' : 'bg-white border-slate-100 text-slate-400'}`}>
                       <span>Falta Convocação</span>
@@ -362,28 +379,52 @@ export default function CalculatorV2() {
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                {/* DEPENDÊNCIA EXAR: ESCONDER TAXAS SE HOUVER FALTA EXAR */}
+                {isExarActive ? (
+                  <div className="bg-amber-50 p-6 rounded-2xl border-2 border-amber-200 border-dashed flex flex-col items-center text-center gap-3">
+                    <Lock className="text-amber-600" size={32} />
+                    <div>
+                      <p className="text-xs font-black uppercase text-amber-800">Emissão Bloqueada</p>
+                      <p className="text-[10px] text-amber-600 font-bold uppercase tracking-tight mt-1">Cidadão com débitos de EXAR não pode requerer novos documentos até a regularização da multa.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black text-[#4B5320] uppercase border-b pb-1">Taxas de Emissão</h4>
+                      {['cdi', 'cdsa', 'ci', 'cr', 'csm', 'adiamento'].map(tax => (
+                        <label key={tax} className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${taxRequests[tax] ? 'bg-emerald-50 text-emerald-700' : 'text-slate-500 hover:bg-slate-50'}`}>
+                          <span className="text-[10px] font-bold uppercase tracking-wider">Requerer {tax.toUpperCase()}</span>
+                          <input type="checkbox" checked={taxRequests[tax]} onChange={(e) => handleTaxToggle(tax, e.target.checked)} className="hidden" />
+                          {taxRequests[tax] ? <CheckCircle size={14} /> : <div className="w-3 h-3 border-2 border-slate-200 rounded" />}
+                        </label>
+                      ))}
+                    </div>
+                    <div className={`space-y-3 ${isExtravioDisabled ? 'opacity-30 pointer-events-none' : ''}`}>
+                      <h4 className="text-[10px] font-black text-rose-700 uppercase border-b pb-1">Multas por Extravio</h4>
+                      {Object.keys(lostDocs).map(lost => (
+                        <label key={lost} className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${lostDocs[lost] ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                          <span className="text-[10px] font-black uppercase leading-tight">{lost.replace(/_/g, ' ')}</span>
+                          <input type="checkbox" checked={lostDocs[lost]} onChange={(e) => handleLostDocsToggle(lost, e.target.checked)} className="hidden" />
+                          {lostDocs[lost] ? <AlertCircle size={16} /> : <div className="w-4 h-4 border-2 border-slate-200 rounded" />}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* FILTRO DE EXTRAVIO: SE EXAR ATIVO, SÓ MOSTRAR CR NO EXTRAVIO */}
+                {isExarActive && !isExtravioDisabled && (
                   <div className="space-y-3">
-                    <h4 className="text-[10px] font-black text-[#4B5320] uppercase border-b pb-1">Taxas de Emissão</h4>
-                    {['cdi', 'cdsa', 'ci', 'cr', 'csm', 'adiamento'].map(tax => (
-                      <label key={tax} className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${taxRequests[tax] ? 'bg-emerald-50 text-emerald-700' : 'text-slate-500'}`}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Requerer {tax.toUpperCase()}</span>
-                        <input type="checkbox" checked={taxRequests[tax]} onChange={(e) => handleTaxToggle(tax, e.target.checked)} className="hidden" />
-                        {taxRequests[tax] ? <CheckCircle size={14} /> : <div className="w-3 h-3 border-2 border-slate-200 rounded" />}
-                      </label>
-                    ))}
+                    <h4 className="text-[10px] font-black text-rose-700 uppercase border-b pb-1">Multas por Extravio (Apenas CR permitido)</h4>
+                    <label className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${lostDocs.cr_csm ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}>
+                      <span className="text-[10px] font-black uppercase leading-tight text-slate-700 font-bold">Extravio de CR / CSM</span>
+                      <input type="checkbox" checked={lostDocs.cr_csm} onChange={(e) => handleLostDocsToggle('cr_csm', e.target.checked)} className="hidden" />
+                      {lostDocs.cr_csm ? <AlertCircle size={16} /> : <div className="w-4 h-4 border-2 border-slate-200 rounded" />}
+                    </label>
                   </div>
-                  <div className={`space-y-3 ${isExtravioDisabled ? 'opacity-30 pointer-events-none' : ''}`}>
-                    <h4 className="text-[10px] font-black text-rose-700 uppercase border-b pb-1">Multas por Extravio</h4>
-                    {Object.keys(lostDocs).map(lost => (
-                      <label key={lost} className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${lostDocs[lost] ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-white border-slate-100 text-slate-400'}`}>
-                        <span className="text-[10px] font-black uppercase leading-tight">{lost.replace(/_/g, ' ')}</span>
-                        <input type="checkbox" checked={lostDocs[lost]} onChange={(e) => handleLostDocsToggle(lost, e.target.checked)} className="hidden" />
-                        {lostDocs[lost] ? <AlertCircle size={16} /> : <div className="w-4 h-4 border-2 border-slate-200 rounded" />}
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                )}
               </div>
             </section>
           </div>

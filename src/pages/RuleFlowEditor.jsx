@@ -27,53 +27,53 @@ const DEFAULT_FLOW = {
   nodes: [
     { id: 'sys-config', type: 'system', position: { x: 1000, y: 0 }, data: { militaryAge: 18, maxRefractoryYears: 10, communicationDeadlineDays: 60 } },
     
-    // 1. ALISTAMENTO (Y: 0 -> 500)
     { id: 'q1', type: 'condition', position: { x: 500, y: 0 }, data: { field: 'enlistmentStatus', operator: 'eq', value: 'late', label: 'Alistamento Atrasado?' } },
     { id: 'a1', type: 'action', position: { x: 50, y: 250 }, data: { label: 'Multa Art 176 (Atraso)', mult: 1, amparo: 'Art 176 RLSM' } },
     
     { id: 'q2', type: 'condition', position: { x: 500, y: 500 }, data: { field: 'multipleEnlistments', operator: 'eq', value: 'true', label: 'Alistamento Múltiplo?' } },
     { id: 'a2', type: 'action', position: { x: 50, y: 750 }, data: { label: 'Multa Art 177 (Múltiplo)', mult: 3, amparo: 'Art 177 RLSM' } },
 
-    // 2. REFRATÁRIO (Y: 1000 -> 2000)
-    { id: 'q3', type: 'condition', position: { x: 500, y: 1000 }, data: { field: 'refractoryYears', operator: 'gt', value: '0', label: 'Refratário (1ª Falta)?' } },
-    { id: 'a3', type: 'action', position: { x: 50, y: 1250 }, data: { label: 'Falta CS (1ª vez)', mult: 1, amparo: 'Art 176 RLSM' } },
-    
-    { id: 'q4', type: 'condition', position: { x: 500, y: 1500 }, data: { field: 'refractoryYears', operator: 'gt', value: '1', label: 'Refratário (2ª Falta)?' } },
-    { id: 'a4', type: 'action', position: { x: 50, y: 1750 }, data: { label: 'Falta CS (2ª vez)', mult: 5, amparo: 'Art 178 RLSM' } },
+    { id: 'q-check-ref', type: 'condition', position: { x: 500, y: 1000 }, data: { field: 'selectionStatus', operator: 'eq', value: 'missed', label: 'Faltou à Seleção (CS)?' } },
 
-    { id: 'q5', type: 'condition', position: { x: 500, y: 2000 }, data: { field: 'refractoryYears', operator: 'gt', value: '2', label: 'Refratário (3ª Falta em diante)?' } },
-    { id: 'a5', type: 'action', position: { x: 50, y: 2250 }, data: { label: 'Faltas Extras CS', mult: 5, amparo: 'Art 178 RLSM', multiplyByField: 'refractoryYears', subtractValue: 2 } },
-
-    // 3. CATEGORIA RESERVA (Y: 2500 -> 3500)
-    { id: 'q6', type: 'condition', position: { x: 500, y: 2500 }, data: { field: 'reserveCategory', operator: 'eq', value: 'oficial_mfdv', label: 'É MFDV?' } },
+    { id: 'q3', type: 'condition', position: { x: 700, y: 1250 }, data: { field: 'refractoryYears', operator: 'gt', value: '0', label: 'Refratário (1ª Falta)?' } },
+    { id: 'a3', type: 'action', position: { x: 250, y: 1500 }, data: { label: 'Falta CS (1ª vez)', mult: 1, amparo: 'Art 176 RLSM' } },
     
-    // Caminho MFDV
-    { id: 'q6a', type: 'condition', position: { x: 200, y: 2800 }, data: { field: 'exarMissedYears', operator: 'gt', value: '0', label: 'Falta EXAR MFDV?' } },
-    { id: 'a6a', type: 'action', position: { x: 50, y: 3100 }, data: { label: 'Multa EXAR MFDV', mult: 5, amparo: 'Art. 52 LMFDV', multiplyByField: 'exarMissedYears' } },
-    
-    { id: 'q6b', type: 'condition', position: { x: 200, y: 3400 }, data: { field: 'missedConvocacao', operator: 'eq', value: 'true', label: 'Falta Convocação MFDV?' } },
-    { id: 'a6b', type: 'action', position: { x: 50, y: 3700 }, data: { label: 'Falta Convocação MFDV', mult: 15, amparo: 'Art. 60 LMFDV' } },
+    { id: 'q4', type: 'condition', position: { x: 700, y: 1750 }, data: { field: 'refractoryYears', operator: 'gt', value: '1', label: 'Refratário (2ª Falta)?' } },
+    { id: 'a4', type: 'action', position: { x: 250, y: 2000 }, data: { label: 'Falta CS (2ª vez)', mult: 5, amparo: 'Art 178 RLSM' } },
 
-    // Caminho Praça/R2
-    { id: 'q7a', type: 'condition', position: { x: 800, y: 2800 }, data: { field: 'exarMissedYears', operator: 'gt', value: '0', label: 'Falta EXAR Praça?' } },
-    { id: 'a7a', type: 'action', position: { x: 600, y: 3100 }, data: { label: 'Multa EXAR Praça', mult: 3, amparo: 'Art. 47 LSM', multiplyByField: 'exarMissedYears' } },
-    
-    { id: 'q7b', type: 'condition', position: { x: 800, y: 3400 }, data: { field: 'missedConvocacao', operator: 'eq', value: 'true', label: 'Falta Convocação Praça?' } },
-    { id: 'a7b', type: 'action', position: { x: 600, y: 3700 }, data: { label: 'Falta Convocação Praça', mult: 3, amparo: 'Art. 47 LSM' } },
+    { id: 'q5', type: 'condition', position: { x: 700, y: 2250 }, data: { field: 'refractoryYears', operator: 'gt', value: '2', label: 'Refratário (3ª Falta em diante)?' } },
+    { id: 'a5', type: 'action', position: { x: 250, y: 2500 }, data: { label: 'Faltas Extras CS', mult: 5, amparo: 'Art 178 RLSM', multiplyByField: 'refractoryYears', subtractValue: 2 } },
 
-    // 4. EXTRAVIOS (Y: 4100+)
-    { id: 'q8', type: 'condition', position: { x: 500, y: 4100 }, data: { field: 'certificateType', operator: 'eq', value: 'analogico', label: 'Certificado Analógico?' } },
-    { id: 'q8a', type: 'condition', position: { x: 250, y: 4400 }, data: { field: 'analogLegible', operator: 'eq', value: 'false', label: 'Não legível/Extraviado?' } },
-    { id: 'q8b', type: 'condition', position: { x: 50, y: 4700 }, data: { field: 'lostDocs_cdi_ci_cdsa', operator: 'eq', value: 'true', label: 'Extraviou CDI/CI/CDSA?' } },
-    { id: 'a8', type: 'action', position: { x: 50, y: 5000 }, data: { label: 'Multa Extravio', mult: 3, amparo: 'Art 177 RLSM' } },
+    { id: 'q6', type: 'condition', position: { x: 500, y: 2800 }, data: { field: 'reserveCategory', operator: 'eq', value: 'oficial_mfdv', label: 'É MFDV?' } },
+    
+    { id: 'q6a', type: 'condition', position: { x: 200, y: 3100 }, data: { field: 'exarMissedYears', operator: 'gt', value: '0', label: 'Falta EXAR MFDV?' } },
+    { id: 'a6a', type: 'action', position: { x: 50, y: 3400 }, data: { label: 'Multa EXAR MFDV', mult: 5, amparo: 'Art. 52 LMFDV', multiplyByField: 'exarMissedYears' } },
+    
+    { id: 'q6b', type: 'condition', position: { x: 200, y: 3700 }, data: { field: 'missedConvocacao', operator: 'eq', value: 'true', label: 'Falta Convocação MFDV?' } },
+    { id: 'a6b', type: 'action', position: { x: 50, y: 4000 }, data: { label: 'Falta Convocação MFDV', mult: 15, amparo: 'Art. 60 LMFDV' } },
+
+    { id: 'q7a', type: 'condition', position: { x: 800, y: 3100 }, data: { field: 'exarMissedYears', operator: 'gt', value: '0', label: 'Falta EXAR Praça?' } },
+    { id: 'a7a', type: 'action', position: { x: 600, y: 3400 }, data: { label: 'Multa EXAR Praça', mult: 3, amparo: 'Art. 47 LSM', multiplyByField: 'exarMissedYears' } },
+    
+    { id: 'q7b', type: 'condition', position: { x: 800, y: 3700 }, data: { field: 'missedConvocacao', operator: 'eq', value: 'true', label: 'Falta Convocação Praça?' } },
+    { id: 'a7b', type: 'action', position: { x: 600, y: 4000 }, data: { label: 'Falta Convocação Praça', mult: 3, amparo: 'Art. 47 LSM' } },
+
+    { id: 'q8', type: 'condition', position: { x: 500, y: 4400 }, data: { field: 'certificateType', operator: 'eq', value: 'analogico', label: 'Certificado Analógico?' } },
+    { id: 'q8a', type: 'condition', position: { x: 250, y: 4700 }, data: { field: 'analogLegible', operator: 'eq', value: 'false', label: 'Não legível/Extraviado?' } },
+    { id: 'q8b', type: 'condition', position: { x: 50, y: 5000 }, data: { field: 'lostDocs_cdi_ci_cdsa', operator: 'eq', value: 'true', label: 'Extraviou CDI/CI/CDSA?' } },
+    { id: 'a8', type: 'action', position: { x: 50, y: 5300 }, data: { label: 'Multa Extravio', mult: 3, amparo: 'Art 177 RLSM' } },
   ],
   edges: [
     { id: 'e1-y', source: 'q1', sourceHandle: 'yes', target: 'a1', label: 'SIM', animated: true, style: { stroke: '#4B5320', strokeWidth: 3 }, labelStyle: { fill: '#4B5320', fontWeight: 900 } },
     { id: 'e1-n', source: 'q1', sourceHandle: 'no', target: 'q2', label: 'NÃO', style: { stroke: '#991b1b' } },
     { id: 'e1-next', source: 'a1', target: 'q2' },
     { id: 'e2-y', source: 'q2', sourceHandle: 'yes', target: 'a2', label: 'SIM', animated: true, style: { stroke: '#4B5320', strokeWidth: 3 } },
-    { id: 'e2-n', source: 'q2', sourceHandle: 'no', target: 'q3', label: 'NÃO', style: { stroke: '#991b1b' } },
-    { id: 'e2-next', source: 'a2', target: 'q3' },
+    { id: 'e2-n', source: 'q2', sourceHandle: 'no', target: 'q-check-ref', label: 'NÃO', style: { stroke: '#991b1b' } },
+    { id: 'e2-next', source: 'a2', target: 'q-check-ref' },
+    
+    { id: 'e-ref-y', source: 'q-check-ref', sourceHandle: 'yes', target: 'q3', label: 'SIM', animated: true, style: { stroke: '#4B5320' } },
+    { id: 'e-ref-n', source: 'q-check-ref', sourceHandle: 'no', target: 'q6', label: 'NÃO', style: { stroke: '#991b1b' } },
+
     { id: 'e3-y', source: 'q3', sourceHandle: 'yes', target: 'a3', label: 'SIM', style: { stroke: '#4B5320' } },
     { id: 'e3-n', source: 'q3', sourceHandle: 'no', target: 'q6', label: 'NÃO', style: { stroke: '#991b1b' } },
     { id: 'e3-next', source: 'a3', target: 'q4' },
@@ -88,13 +88,15 @@ const DEFAULT_FLOW = {
     { id: 'e6a-y', source: 'q6a', sourceHandle: 'yes', target: 'a6a', label: 'SIM', style: { stroke: '#4B5320' } },
     { id: 'e6a-n', source: 'q6a', sourceHandle: 'no', target: 'q6b', label: 'NÃO', style: { stroke: '#991b1b' } },
     { id: 'e6a-next', source: 'a6a', target: 'q6b' },
+    { id: 'e6b-y', source: 'q6b', sourceHandle: 'yes', target: 'a6b', label: 'SIM', style: { stroke: '#4B5320' } },
+    { id: 'e6b-n', source: 'q6b', sourceHandle: 'no', target: 'q8', label: 'NÃO', style: { stroke: '#991b1b' } },
+    { id: 'e6b-next', source: 'a6b', target: 'q8' },
     { id: 'e7a-y', source: 'q7a', sourceHandle: 'yes', target: 'a7a', label: 'SIM', style: { stroke: '#4B5320' } },
     { id: 'e7a-n', source: 'q7a', sourceHandle: 'no', target: 'q7b', label: 'NÃO', style: { stroke: '#991b1b' } },
     { id: 'e7a-next', source: 'a7a', target: 'q7b' },
-    { id: 'e_to_lost', source: 'a6b', target: 'q8' },
-    { id: 'e_to_lost_2', source: 'a7b', target: 'q8' },
-    { id: 'e_to_lost_3', source: 'q6b', sourceHandle: 'no', target: 'q8' },
-    { id: 'e_to_lost_4', source: 'q7b', sourceHandle: 'no', target: 'q8' },
+    { id: 'e7b-y', source: 'q7b', sourceHandle: 'yes', target: 'a7b', label: 'SIM', style: { stroke: '#4B5320' } },
+    { id: 'e7b-n', source: 'q7b', sourceHandle: 'no', target: 'q8', label: 'NÃO', style: { stroke: '#991b1b' } },
+    { id: 'e7b-next', source: 'a7b', target: 'q8' },
     { id: 'e8-y', source: 'q8', sourceHandle: 'yes', target: 'q8a', label: 'SIM', style: { stroke: '#4B5320' } },
     { id: 'e8a-y', source: 'q8a', sourceHandle: 'yes', target: 'q8b', label: 'SIM', style: { stroke: '#4B5320' } },
     { id: 'e8b-y', source: 'q8b', sourceHandle: 'yes', target: 'a8', label: 'SIM', style: { stroke: '#4B5320' } },
@@ -137,9 +139,11 @@ function FlowEditor() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setNodes(injectHandlers(parsed.nodes));
-        setEdges(parsed.edges);
-        if (parsed.name) setRuleName(parsed.name);
+        if (parsed.nodes && parsed.edges) {
+          setNodes(injectHandlers(parsed.nodes));
+          setEdges(parsed.edges);
+          if (parsed.name) setRuleName(parsed.name);
+        } else { loadDefaultFlow(); }
       } catch (e) { loadDefaultFlow(); }
     } else { loadDefaultFlow(); }
   }, [injectHandlers, loadDefaultFlow]);
@@ -220,9 +224,8 @@ function FlowEditor() {
           <Controls />
           
           <Panel position="top-left" className="bg-white/95 backdrop-blur-md p-6 rounded-[2rem] shadow-2xl border-2 border-[#3A3F1C] flex flex-col gap-5 w-80 m-6">
-            <div className="space-y-1">
-              <h3 className="text-xs font-black text-[#3A3F1C] uppercase tracking-widest">Blocos Estruturais</h3>
-              <p className="text-[9px] text-slate-400 font-bold uppercase">Painel de Comando</p>
+            <div className="space-y-1 text-center">
+              <h3 className="text-xs font-black text-[#3A3F1C] uppercase tracking-widest">Painel de Comando</h3>
             </div>
             
             <button onClick={() => addNode('condition')} className="flex items-center gap-4 bg-white hover:bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 hover:border-[#4B5320] text-[#3A3F1C] transition-all shadow-sm active:scale-95">
@@ -250,18 +253,14 @@ function FlowEditor() {
                 <Cpu size={24} />
               </div>
               <div className="text-left leading-tight">
-                <div className="font-black text-xs uppercase tracking-tight tracking-tighter">Parâmetros do Sistema</div>
-                <div className="text-[9px] text-slate-300 font-bold uppercase mt-1 tracking-tighter">Constantes Globais</div>
+                <div className="font-black text-xs uppercase tracking-tight tracking-tighter">Parâmetros Globais</div>
+                <div className="text-[9px] text-slate-300 font-bold uppercase mt-1">Constantes do Sistema</div>
               </div>
             </button>
 
             <div className="bg-[#3A3F1C] rounded-2xl p-4 border-2 border-[#D4AF37] space-y-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Zap size={14} className="text-[#D4AF37]" />
-                <h4 className="text-[9px] font-black text-white uppercase tracking-[0.2em]">Instruções</h4>
-              </div>
               <p className="text-[9px] text-slate-300 font-medium leading-relaxed uppercase">
-                Conecte os pontos <strong className="text-[#D4AF37]">Dourados</strong> para fluxos positivos (SIM) e os pontos <strong className="text-white">Brancos</strong> para fluxos negativos (NÃO).
+                Para corrigir o erro de multas indevidas: Clique em <strong>RESETAR PADRÃO</strong> e depois em <strong>SINCRONIZAR REGRAS</strong>.
               </p>
             </div>
           </Panel>
