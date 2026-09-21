@@ -67,6 +67,7 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
     enrollYear: null,
     enrollMonth: null,
     classYear: null,
+    conscriptionYear: null,
     effectiveClass: null,
     ageAtEnrollment: null,
     yearsLate: null,
@@ -83,9 +84,12 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
   if (!by || by < 1900 || by > 2100 || !date) return empty;
 
   const { year: enrollYear, month: enrollMonth } = date;
-  const classYear = by + militaryAge;
+  // A CLASSE do cidadão é o seu ano de nascimento.
+  const classYear = by;
+  // Ano em que a classe é convocada (ano em que completa a idade militar).
+  const conscriptionYear = by + militaryAge;
   const ageAtEnrollment = enrollYear - by;
-  const yearsLate = enrollYear - classYear;
+  const yearsLate = enrollYear - conscriptionYear;
   const withinFirstSemester = enrollMonth <= ENROLLMENT_DEADLINE_MONTH;
 
   // Fora do prazo sempre que: classe anterior (yearsLate > 0),
@@ -105,7 +109,7 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
     : withinFirstSemester
       ? enrollYear
       : enrollYear + 1;
-  const effectiveClass = isOver30 ? classYear : csFirstMandatoryYear;
+  const effectiveClass = isOver30 || withinFirstSemester ? classYear : classYear + 1;
 
   let scenario;
   let notice;
@@ -121,8 +125,9 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
   } else if (yearsLate < 0) {
     scenario = 'antecipado';
     notice =
-      `Alistamento anterior ao ano da classe (${classYear}). Confira o ano de ` +
-      `nascimento e a data informada antes de prosseguir.`;
+      `Alistamento anterior ao ano de convocação da classe ${classYear} ` +
+      `(${conscriptionYear}). Confira o ano de nascimento e a data informada antes ` +
+      `de prosseguir.`;
   } else if (yearsLate === 0 && withinFirstSemester) {
     scenario = 'classe_no_prazo';
     notice =
@@ -179,6 +184,7 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
     enrollYear,
     enrollMonth,
     classYear,
+    conscriptionYear,
     effectiveClass,
     ageAtEnrollment,
     yearsLate,

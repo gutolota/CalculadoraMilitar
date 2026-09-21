@@ -66,8 +66,9 @@ describe('cenário 2: classe do ano, alistamento no 2º semestre', () => {
   });
 
   it('passa a compor a classe posterior', () => {
-    expect(a.classYear).toBe(2026);
-    expect(a.effectiveClass).toBe(2027);
+    expect(a.classYear).toBe(2008);
+    expect(a.conscriptionYear).toBe(2026);
+    expect(a.effectiveClass).toBe(2009);
     expect(a.csFirstMandatoryYear).toBe(2027);
   });
 
@@ -95,7 +96,8 @@ describe('cenário 3a: classe anterior, apresenta-se entre 01/01 e 30/06', () =>
 
   it('está fora do prazo com anos de atraso', () => {
     expect(a.status).toBe('late');
-    expect(a.classYear).toBe(2023);
+    expect(a.classYear).toBe(2005);
+    expect(a.conscriptionYear).toBe(2023);
     expect(a.yearsLate).toBe(3);
   });
 
@@ -244,5 +246,48 @@ describe('maior de 30 anos (mais de 28 anos no ano do alistamento)', () => {
   it('singular quando há apenas 1 ano de atraso não se aplica aqui, mas headline usa plural correto', () => {
     const b = analyzeEnrollment({ birthYear: 1997, enlistmentDate: '2026-09-10' });
     expect(b.headline).toMatch(/^FORA DO PRAZO - 11 ANOS DE ATRASO, MAIOR DE 30 ANOS$/);
+  });
+});
+
+// Classe = ANO DE NASCIMENTO (não o ano em que completa 18).
+describe('classe é o ano de nascimento', () => {
+  it('foto 1: nascido 2003, alistou 20/06/2021 -> classe 2003', () => {
+    const a = analyzeEnrollment({ birthYear: 2003, enlistmentDate: '2021-06-20' });
+    expect(a.classYear).toBe(2003);
+    expect(a.conscriptionYear).toBe(2021);
+    expect(a.status).toBe('on_time');
+    expect(a.headline).toBe('NO PRAZO');
+    expect(a.notice).toMatch(/é da classe 2003/);
+    expect(a.notice).not.toMatch(/classe 2021/);
+  });
+
+  it('foto 2: nascido 2005, alistou 20/06/2024 -> classe 2005, 1 ano de atraso', () => {
+    const a = analyzeEnrollment({ birthYear: 2005, enlistmentDate: '2024-06-20' });
+    expect(a.classYear).toBe(2005);
+    expect(a.conscriptionYear).toBe(2023);
+    expect(a.yearsLate).toBe(1);
+    expect(a.ageAtEnrollment).toBe(19);
+    expect(a.headline).toBe('FORA DO PRAZO - 1 ANO DE ATRASO, COM 19 ANOS');
+    expect(a.notice).toMatch(/classe 2005/);
+    expect(a.notice).not.toMatch(/classe 2023/);
+    // 1º semestre -> CS obrigatória
+    expect(a.csMandatoryThisYear).toBe(true);
+  });
+
+  it('2º semestre: a classe do cidadão NÃO muda, muda o ano de convocação', () => {
+    const a = analyzeEnrollment({ birthYear: 2005, enlistmentDate: '2024-09-10' });
+    expect(a.classYear).toBe(2005);
+    expect(a.effectiveClass).toBe(2006);
+    expect(a.csFirstMandatoryYear).toBe(2025);
+    expect(a.notice).toMatch(/classe 2006/);
+  });
+
+  it('maior de 30 cita a classe de nascimento', () => {
+    const a = analyzeEnrollment({ birthYear: 1996, enlistmentDate: '2026-03-10' });
+    expect(a.classYear).toBe(1996);
+    expect(a.conscriptionYear).toBe(2014);
+    expect(a.yearsLate).toBe(12);
+    expect(a.headline).toBe('FORA DO PRAZO - 12 ANOS DE ATRASO, MAIOR DE 30 ANOS');
+    expect(a.notice).toMatch(/classe 1996/);
   });
 });

@@ -88,7 +88,7 @@ t = await setDate('2026-08-20');
 t.includes(norm('Fora do Prazo')) ? ok('marcado como Fora do Prazo') : bad('nao marcou fora do prazo');
 t.includes(norm('Fora do prazo para alistamento')) ? ok('multa de alistamento no extrato') : bad('faltou multa de alistamento');
 t.includes(norm('NÃO obrigatório')) ? ok('CS NAO obrigatoria sinalizada') : bad('nao avisou que CS nao e obrigatoria');
-t.includes(norm('classe 2027')) || t.includes(norm('compor a classe 2027')) ? ok('avisa que passa para classe 2027') : bad('nao avisou mudanca de classe');
+t.includes(norm('compor a classe 2009')) ? ok('avisa que passa para a classe 2009') : bad('nao avisou mudanca de classe');
 t.includes(norm('Não obrigatório — sem multa por falta')) ? ok('historico marca ano sem multa') : bad('historico nao marcou isencao de falta');
 // valor: 1x 6,69
 t.match(/r\$\s*6,69/) ? ok('total 1x R$ 6,69') : bad('valor esperado 6,69 nao encontrado');
@@ -104,6 +104,21 @@ console.log('\n== cenario 3b: classe anterior, 2o semestre ==');
 t = await setDate('2026-09-05');
 t.includes(norm('NÃO obrigatório')) ? ok('CS NAO obrigatoria (2o sem)') : bad('deveria dispensar CS');
 t.includes(norm('NÃO pode ser cobrada')) ? ok('texto explica nao-cobranca') : bad('faltou explicacao de nao-cobranca');
+
+console.log('\n== classe = ano de nascimento (casos das fotos) ==');
+await setBirth(2003);
+t = await setDate('2021-06-20');
+t.includes(norm('é da classe 2003')) ? ok('foto 1: cita classe 2003') : bad('foto 1: nao citou classe 2003');
+t.includes(norm('classe 2021')) ? bad('foto 1: ainda cita classe 2021') : ok('foto 1: nao cita classe 2021');
+t.includes(norm('NO PRAZO')) ? ok('foto 1: no prazo') : bad('foto 1: deveria estar no prazo');
+await page.screenshot({ path: '/tmp/calc-foto1.png', fullPage: true });
+
+await setBirth(2005);
+t = await setDate('2024-06-20');
+t.includes(norm('FORA DO PRAZO - 1 ANO DE ATRASO, COM 19 ANOS')) ? ok('foto 2: selo correto') : bad('foto 2: selo errado');
+t.includes(norm('classe 2005')) ? ok('foto 2: cita classe 2005') : bad('foto 2: nao citou classe 2005');
+t.includes(norm('classe 2023')) ? bad('foto 2: ainda cita classe 2023') : ok('foto 2: nao cita classe 2023');
+await page.screenshot({ path: '/tmp/calc-foto2.png', fullPage: true });
 
 console.log('\n== maior de 30 anos (mais de 28 no ano do alistamento) ==');
 await setBirth(1996);
