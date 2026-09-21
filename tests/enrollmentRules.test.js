@@ -180,3 +180,69 @@ describe('histórico de CS', () => {
     expect(countRefractoryYears(a, records, 2024, 10)).toBe(0);
   });
 });
+
+// Regra: mais de 28 anos no ano do alistamento -> tratado como maior de 30 anos.
+// Não vai à CS; paga apenas a multa de alistamento fora do prazo.
+describe('maior de 30 anos (mais de 28 anos no ano do alistamento)', () => {
+  // nasce em 1996, alista em 2026 -> 30 anos no ano
+  const a = analyzeEnrollment({ birthYear: 1996, enlistmentDate: '2026-03-10' });
+
+  it('marca a condição de maior de 30 anos', () => {
+    expect(a.ageAtEnrollment).toBe(30);
+    expect(a.isOver30).toBe(true);
+    expect(a.scenario).toBe('maior_de_30');
+  });
+
+  it('está fora do prazo (cabe a multa de alistamento)', () => {
+    expect(a.status).toBe('late');
+    expect(a.isLate).toBe(true);
+    expect(a.yearsLate).toBe(12);
+  });
+
+  it('não é obrigado a comparecer à CS em nenhum ano', () => {
+    expect(a.csMandatoryThisYear).toBe(false);
+    expect(a.csFirstMandatoryYear).toBeNull();
+    expect(isCsMandatoryForYear(a, 2026)).toBe(false);
+    expect(isCsMandatoryForYear(a, 2027)).toBe(false);
+  });
+
+  it('nunca acumula refratário', () => {
+    const n = countRefractoryYears(
+      a,
+      { 2026: { shouldAttend: true, attended: false, happened: true } },
+      2026,
+      10,
+    );
+    expect(n).toBe(0);
+  });
+
+  it('exibe a mensagem exigida', () => {
+    expect(a.headline).toBe('FORA DO PRAZO - 12 ANOS DE ATRASO, MAIOR DE 30 ANOS');
+  });
+
+  it('vale também no 1º semestre, que normalmente exigiria CS', () => {
+    const b = analyzeEnrollment({ birthYear: 1996, enlistmentDate: '2026-06-01' });
+    expect(b.isOver30).toBe(true);
+    expect(b.csMandatoryThisYear).toBe(false);
+  });
+
+  it('o limite é "mais de 28": com 28 anos a regra NÃO se aplica', () => {
+    // nasce em 1998, alista em 2026 -> 28 anos
+    const b = analyzeEnrollment({ birthYear: 1998, enlistmentDate: '2026-03-10' });
+    expect(b.ageAtEnrollment).toBe(28);
+    expect(b.isOver30).toBe(false);
+    expect(b.csMandatoryThisYear).toBe(true);
+  });
+
+  it('com 29 anos a regra já se aplica', () => {
+    const b = analyzeEnrollment({ birthYear: 1997, enlistmentDate: '2026-03-10' });
+    expect(b.ageAtEnrollment).toBe(29);
+    expect(b.isOver30).toBe(true);
+    expect(b.headline).toBe('FORA DO PRAZO - 11 ANOS DE ATRASO, MAIOR DE 30 ANOS');
+  });
+
+  it('singular quando há apenas 1 ano de atraso não se aplica aqui, mas headline usa plural correto', () => {
+    const b = analyzeEnrollment({ birthYear: 1997, enlistmentDate: '2026-09-10' });
+    expect(b.headline).toMatch(/^FORA DO PRAZO - 11 ANOS DE ATRASO, MAIOR DE 30 ANOS$/);
+  });
+});

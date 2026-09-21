@@ -105,6 +105,25 @@ t = await setDate('2026-09-05');
 t.includes(norm('NÃO obrigatório')) ? ok('CS NAO obrigatoria (2o sem)') : bad('deveria dispensar CS');
 t.includes(norm('NÃO pode ser cobrada')) ? ok('texto explica nao-cobranca') : bad('faltou explicacao de nao-cobranca');
 
+console.log('\n== maior de 30 anos (mais de 28 no ano do alistamento) ==');
+await setBirth(1996);
+t = await setDate('2026-03-10');
+t.includes(norm('FORA DO PRAZO - 12 ANOS DE ATRASO, MAIOR DE 30 ANOS'))
+  ? ok('mensagem exigida exibida')
+  : bad('mensagem "FORA DO PRAZO - 12 ANOS DE ATRASO, MAIOR DE 30 ANOS" ausente');
+t.includes(norm('Maior de 30 anos: não vai à CS')) ? ok('aviso de dispensa de CS') : bad('faltou aviso de dispensa');
+t.includes(norm('Histórico de CS')) ? bad('historico de CS nao deveria aparecer') : ok('historico de CS oculto');
+t.includes(norm('Fora do prazo para alistamento')) ? ok('multa de alistamento no extrato') : bad('faltou multa de alistamento');
+t.includes(norm('Faltar à CS')) ? bad('cobrou multa de CS indevida') : ok('sem multa de CS');
+t.match(/r\$\s*6,69/) ? ok('total 1x R$ 6,69') : bad('total esperado 6,69 nao encontrado');
+await page.screenshot({ path: '/tmp/calc-maior30.png', fullPage: true });
+
+console.log('\n== limite: 28 anos ainda vai a CS ==');
+await setBirth(1998);
+t = await setDate('2026-03-10');
+t.includes(norm('MAIOR DE 30 ANOS')) ? bad('28 anos nao deveria disparar a regra') : ok('28 anos: regra nao aplicada');
+t.includes(norm('comparecimento obrigatório')) ? ok('28 anos: CS obrigatoria') : bad('28 anos deveria exigir CS');
+
 await page.screenshot({ path: '/tmp/calc-cenario3b.png', fullPage: true });
 t = await setDate('2026-08-20');
 await setBirth(2008);

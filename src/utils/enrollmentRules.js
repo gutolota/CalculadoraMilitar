@@ -13,6 +13,12 @@
 
 export const MILITARY_AGE = 18;
 export const ENROLLMENT_DEADLINE_MONTH = 6; // junho
+/**
+ * Acima desta idade no ANO do alistamento o cidadão é considerado maior de
+ * 30 anos: não é encaminhado à CS e responde apenas pela multa de alistamento
+ * fora do prazo. "Mais de 28 anos" => a partir de 29.
+ */
+export const OVER_30_AGE_THRESHOLD = 28;
 
 /** Converte "AAAA-MM-DD" (valor de <input type="date">) em partes numéricas. */
 export function parseISODate(iso) {
@@ -57,6 +63,7 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
     valid: false,
     status: null,
     isLate: false,
+    isOver30: false,
     enrollYear: null,
     enrollMonth: null,
     classYear: null,
@@ -68,6 +75,7 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
     csFirstMandatoryYear: null,
     scenario: null,
     notice: null,
+    headline: null,
   };
 
   const by = Number(birthYear);
@@ -86,14 +94,31 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
 
   // Quem se apresenta no 2º semestre passa a compor a classe posterior:
   // a primeira CS obrigatória é a do ano seguinte.
-  const csMandatoryThisYear = withinFirstSemester;
-  const csFirstMandatoryYear = withinFirstSemester ? enrollYear : enrollYear + 1;
-  const effectiveClass = csFirstMandatoryYear;
+  // Mais de 28 anos no ano do alistamento: o cidadão é tratado como maior de
+  // 30 anos. Não é encaminhado à CS em nenhum ano; responde apenas pela multa
+  // de alistamento fora do prazo.
+  const isOver30 = ageAtEnrollment > OVER_30_AGE_THRESHOLD;
+
+  const csMandatoryThisYear = isOver30 ? false : withinFirstSemester;
+  const csFirstMandatoryYear = isOver30
+    ? null
+    : withinFirstSemester
+      ? enrollYear
+      : enrollYear + 1;
+  const effectiveClass = isOver30 ? classYear : csFirstMandatoryYear;
 
   let scenario;
   let notice;
 
-  if (yearsLate < 0) {
+  if (isOver30) {
+    scenario = 'maior_de_30';
+    notice =
+      `Fora do prazo para alistamento (classe ${classYear}, ${yearsLate} ` +
+      `${yearsLate === 1 ? 'ano' : 'anos'} de atraso). Com ${ageAtEnrollment} anos no ano ` +
+      `do alistamento, o cidadão é considerado MAIOR DE 30 ANOS: NÃO é encaminhado à ` +
+      `Comissão de Seleção e NÃO pode ser cobrada multa por falta à CS. Recolhe apenas ` +
+      `a multa por alistamento fora do prazo.`;
+  } else if (yearsLate < 0) {
     scenario = 'antecipado';
     notice =
       `Alistamento anterior ao ano da classe (${classYear}). Confira o ano de ` +
@@ -130,10 +155,27 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
       `neste ano. A primeira CS obrigatória é a de ${csFirstMandatoryYear}.`;
   }
 
+  // Texto curto exibido como selo de status na interface.
+  let headline;
+  if (isOver30) {
+    headline =
+      `FORA DO PRAZO - ${yearsLate} ${yearsLate === 1 ? 'ANO' : 'ANOS'} DE ATRASO, ` +
+      `MAIOR DE 30 ANOS`;
+  } else if (!isLate) {
+    headline = 'NO PRAZO';
+  } else if (yearsLate === 0) {
+    headline = `FORA DO PRAZO - 2º SEMESTRE, COM ${ageAtEnrollment} ANOS`;
+  } else {
+    headline =
+      `FORA DO PRAZO - ${yearsLate} ${yearsLate === 1 ? 'ANO' : 'ANOS'} DE ATRASO, ` +
+      `COM ${ageAtEnrollment} ANOS`;
+  }
+
   return {
     valid: true,
     status: isLate ? 'late' : 'on_time',
     isLate,
+    isOver30,
     enrollYear,
     enrollMonth,
     classYear,
@@ -145,6 +187,7 @@ export function analyzeEnrollment({ birthYear, enlistmentDate, militaryAge = MIL
     csFirstMandatoryYear,
     scenario,
     notice,
+    headline,
   };
 }
 
@@ -165,6 +208,7 @@ export function csHistoryYears(analysis, currentYear) {
 /** Um ano do histórico é cobrável por falta à CS? */
 export function isCsMandatoryForYear(analysis, year) {
   if (!analysis?.valid) return false;
+  if (analysis.isOver30) return false;
   if (year === analysis.enrollYear) return analysis.csMandatoryThisYear;
   return year >= analysis.csFirstMandatoryYear;
 }

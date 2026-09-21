@@ -386,11 +386,7 @@ export default function CalculatorV2() {
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest ${analysis.status === "on_time" ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700"}`}
                         >
                           {analysis.status === "on_time" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
-                          {analysis.status === "on_time"
-                            ? "No Prazo"
-                            : analysis.yearsLate === 0
-                              ? `Fora do Prazo — 2º semestre, com ${analysis.ageAtEnrollment} anos`
-                              : `Fora do Prazo — ${analysis.yearsLate} ${analysis.yearsLate === 1 ? "ano" : "anos"} de atraso, com ${analysis.ageAtEnrollment} anos`}
+                          {analysis.headline}
                         </div>
 
                         <div
@@ -399,9 +395,11 @@ export default function CalculatorV2() {
                           <Info size={15} className="mt-0.5 shrink-0" />
                           <div className="space-y-1">
                             <p className="text-[10px] font-black uppercase tracking-widest">
-                              {analysis.csMandatoryThisYear
-                                ? `CS de ${analysis.enrollYear}: comparecimento obrigatório`
-                                : `CS de ${analysis.enrollYear}: comparecimento NÃO obrigatório`}
+                              {analysis.isOver30
+                                ? "Maior de 30 anos: não vai à CS"
+                                : analysis.csMandatoryThisYear
+                                  ? `CS de ${analysis.enrollYear}: comparecimento obrigatório`
+                                  : `CS de ${analysis.enrollYear}: comparecimento NÃO obrigatório`}
                             </p>
                             <p className="text-[11px] font-bold leading-snug">{analysis.notice}</p>
                           </div>
@@ -410,7 +408,7 @@ export default function CalculatorV2() {
                     )}
                   </div>
 
-                  {historyYears.length > 0 && (
+                  {historyYears.length > 0 && !analysis.isOver30 && (
                     <div className="space-y-1 pt-2 border-t border-slate-200">
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
                         Histórico de CS — Seleção Geral
