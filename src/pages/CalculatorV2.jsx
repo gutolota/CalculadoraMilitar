@@ -34,6 +34,9 @@ const SYSTEM_SETTINGS = {
 
 export default function CalculatorV2() {
   const [showSettings, setShowSettings] = useState(false);
+  // Alistamento/refratário e reserva/EXAR são cálculos distintos.
+  // Processos/documentos continua compartilhado pelos dois modos.
+  const [activeSection, setActiveSection] = useState("enlistment");
 
   const [baseFee, setBaseFee] = useState(() => {
     if (typeof window === "undefined") return DEFAULT_BASE_FEE;
@@ -135,6 +138,8 @@ export default function CalculatorV2() {
     certificateType === "digital" || (certificateType === "analogico" && analogLegible);
 
   const calculations = useMemo(() => {
+    const enrollmentActive = activeSection === "enlistment";
+    const reserveActive = activeSection === "reserve";
     const breakdown = [];
     let total = 0;
     const push = (label, rule, mult = rule.mult) => {
@@ -142,27 +147,27 @@ export default function CalculatorV2() {
       total += mult * baseFee;
     };
 
-    if (analysis.valid && analysis.isLate) push("Fora do prazo para alistamento", rules.alistamentoAtraso);
-    if (multipleEnlistments) push("Alistar-se mais de uma vez", rules.alistamentoMultiplo);
+    if (enrollmentActive && analysis.valid && analysis.isLate) push("Fora do prazo para alistamento", rules.alistamentoAtraso);
+    if (enrollmentActive && multipleEnlistments) push("Alistar-se mais de uma vez", rules.alistamentoMultiplo);
 
-    if (refractoryYears >= 1) push("Faltar à CS 1ª vez", rules.refratario1);
-    if (refractoryYears >= 2) push("Faltar à CS 2ª vez", rules.refratario2);
-    if (refractoryYears >= 3) {
+    if (enrollmentActive && refractoryYears >= 1) push("Faltar à CS 1ª vez", rules.refratario1);
+    if (enrollmentActive && refractoryYears >= 2) push("Faltar à CS 2ª vez", rules.refratario2);
+    if (enrollmentActive && refractoryYears >= 3) {
       const extra = refractoryYears - 2;
       push(`Faltar à CS 3ª+ (${extra}x)`, rules.refratario3Mais, extra * rules.refratario3Mais.mult);
     }
 
     const isMfdv = reserveCategory === "oficial_mfdv";
     const isOficialR2 = reserveCategory === "oficial_r2";
-    if (exarMissedYears > 0) {
+    if (reserveActive && exarMissedYears > 0) {
       const rule = isMfdv ? rules.exarMfdv : isOficialR2 ? rules.exarOficialR2 : rules.exarPracas;
       push(`Falta EXAR (${exarMissedYears}x)`, rule, exarMissedYears * rule.mult);
     }
-    if (missedConvocacao) push("Falta à Convocação", isMfdv ? rules.convocacaoMfdv : rules.convocacaoPracaR2);
-    if (missedResidencia) push("Omissão de Residência", isMfdv ? rules.residenciaMfdv : rules.residenciaPracaR2);
-    if (mfdvMissedRenewals > 0)
+    if (reserveActive && missedConvocacao) push("Falta à Convocação", isMfdv ? rules.convocacaoMfdv : rules.convocacaoPracaR2);
+    if (reserveActive && missedResidencia) push("Omissão de Residência", isMfdv ? rules.residenciaMfdv : rules.residenciaPracaR2);
+    if (reserveActive && mfdvMissedRenewals > 0)
       push(`Falta Renovação MFDV (${mfdvMissedRenewals}x)`, rules.mfdvAdiamento, mfdvMissedRenewals * rules.mfdvAdiamento.mult);
-    if (mfdvLateDiploma) push("Atraso Apresentação Diploma", rules.mfdvDiploma);
+    if (reserveActive && mfdvLateDiploma) push("Atraso Apresentação Diploma", rules.mfdvDiploma);
 
     if (!isExtravioDisabled) {
       if (lostDocs.cr_csm) push("Extravio de CR/CSM", rules.extravioCrCsm);
@@ -194,6 +199,7 @@ export default function CalculatorV2() {
     baseFee, rules, analysis, multipleEnlistments, refractoryYears, reserveCategory,
     exarMissedYears, missedConvocacao, missedResidencia, mfdvMissedRenewals, mfdvLateDiploma,
     lostDocs, taxRequests, exemption, certificateType, analogLegible, isExtravioDisabled, isExarActive,
+    activeSection,
   ]);
 
   const handleTaxToggle = (key, checked) =>
@@ -320,13 +326,25 @@ export default function CalculatorV2() {
 
             <section className="bg-white rounded-2xl shadow-xl border-l-8 border-green-600 overflow-hidden">
               <div className="bg-slate-50 p-4 border-b flex justify-between items-center">
-                <h2 className="text-sm font-black uppercase tracking-widest text-green-700 flex items-center gap-2">
-                  <User size={18} /> 1. Ficha do Cidadão
-                </h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveSection("enlistment")}
+                  className="w-full flex justify-between items-center text-left"
+                  aria-expanded={activeSection === "enlistment"}
+                >
+                  <span className="text-sm font-black uppercase tracking-widest text-green-700 flex items-center gap-2">
+                    <User size={18} /> 1. Ficha do Cidadão
+                  </span>
+                  <span className="text-[10px] font-black uppercase text-green-700">
+                    {activeSection === "enlistment" ? "Aberta" : "Abrir"}
+                  </span>
+                </button>
               </div>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {activeSection === "enlistment" && (
+                <>
+                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     Ano de Nascimento (Classe)
                   </label>
                   <div className="relative group">
@@ -545,15 +563,28 @@ export default function CalculatorV2() {
                   </label>
                 </div>
               </div>
+              </>
+              )}
             </section>
 
             <section className="bg-white rounded-2xl shadow-xl border-l-8 border-green-700 overflow-hidden">
               <div className="bg-slate-50 p-4 border-b flex items-center gap-2">
-                <h2 className="text-sm font-black uppercase tracking-widest text-green-800 flex items-center gap-2">
-                  <ShieldAlert size={18} /> 2. Obrigações e Reserva
-                </h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveSection("reserve")}
+                  className="w-full flex justify-between items-center text-left"
+                  aria-expanded={activeSection === "reserve"}
+                >
+                  <span className="text-sm font-black uppercase tracking-widest text-green-800 flex items-center gap-2">
+                    <ShieldAlert size={18} /> 2. Obrigações e Reserva
+                  </span>
+                  <span className="text-[10px] font-black uppercase text-green-800">
+                    {activeSection === "reserve" ? "Aberta" : "Abrir"}
+                  </span>
+                </button>
               </div>
-              <div className="p-6 space-y-6">
+              {activeSection === "reserve" && (
+                <div className="p-6 space-y-6">
                 <div className="bg-slate-50 border-2 border-slate-100 rounded-2xl p-5">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-black uppercase tracking-widest text-slate-500">
@@ -643,6 +674,7 @@ export default function CalculatorV2() {
                   </div>
                 </div>
               </div>
+              )}
             </section>
 
             <section className="bg-white rounded-2xl shadow-xl border-l-8 border-slate-400 overflow-hidden">
