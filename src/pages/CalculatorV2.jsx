@@ -862,6 +862,14 @@ export default function CalculatorV2() {
             <FileText size={14} className="text-green-300" /> Imprimir
           </button>
         </div>
+
+        <div className="hidden lg:flex justify-center py-4 print:hidden">
+          <img
+            src="https://hits.sh/gutolota.github.io/CalculadoraMilitar.svg?style=flat-square&label=visitas&color=16a34a"
+            alt="Contador de visitas"
+            className="opacity-70"
+          />
+        </div>
       </div>
     </div>
   );
