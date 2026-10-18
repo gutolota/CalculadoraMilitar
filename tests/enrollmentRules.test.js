@@ -9,15 +9,15 @@ import {
 import { DEFAULT_BASE_FEE, DEFAULT_RULES } from '../src/config/amparosLegais.js';
 
 describe('valor base da taxa', () => {
-  it('é 6,69', () => {
-    expect(DEFAULT_BASE_FEE).toBe(6.69);
+  it('é 6,71', () => {
+    expect(DEFAULT_BASE_FEE).toBe(6.71);
   });
 
-  it('multa de alistamento em atraso = 1x R$ 6,69 (Nr 1) Art 176 RLSM)', () => {
+  it('multa de alistamento em atraso = 1x R$ 6,71 (Nr 1) Art 176 RLSM)', () => {
     const rule = DEFAULT_RULES.alistamentoAtraso;
     expect(rule.mult).toBe(1);
     expect(rule.amparo).toBe('Nr 1) Art 176 RLSM');
-    expect(+(rule.mult * DEFAULT_BASE_FEE).toFixed(2)).toBe(6.69);
+    expect(+(rule.mult * DEFAULT_BASE_FEE).toFixed(2)).toBe(6.71);
   });
 });
 
@@ -289,5 +289,35 @@ describe('classe é o ano de nascimento', () => {
     expect(a.yearsLate).toBe(12);
     expect(a.headline).toBe('FORA DO PRAZO - 12 ANOS DE ATRASO, MAIOR DE 30 ANOS');
     expect(a.notice).toMatch(/classe 1996/);
+  });
+});
+
+// Teto de cobrança: nenhuma falta à CS é cobrável após o ano em que o
+// cidadão completa mais de 28 anos, mesmo que no ano do alistamento ele
+// ainda não fosse "maior de 30". A partir desse ano: "29+ s/ cob.".
+describe('teto de cobrança de faltas aos 28 anos (classe 1993, alistado 10/06/2016)', () => {
+  const a = analyzeEnrollment({ birthYear: 1993, enlistmentDate: '2016-06-10' });
+
+  it('fora do prazo, 5 anos de atraso, com 23 anos', () => {
+    expect(a.classYear).toBe(1993);
+    expect(a.conscriptionYear).toBe(2011);
+    expect(a.yearsLate).toBe(5);
+    expect(a.ageAtEnrollment).toBe(23);
+    expect(a.isOver30).toBe(false);
+    expect(a.csMandatoryThisYear).toBe(true);
+  });
+
+  it('CS obrigatória até 2021 (ano em que completa 28 anos); a partir de 2022, não cobrável', () => {
+    expect(isCsMandatoryForYear(a, 2021)).toBe(true); // 1993+28=2021
+    expect(isCsMandatoryForYear(a, 2022)).toBe(false);
+    expect(isCsMandatoryForYear(a, 2025)).toBe(false);
+  });
+
+  it('faltas de 2016 a 2021 contam (6 anos); 2022-2025 não contam mesmo com falta registrada', () => {
+    const records = {};
+    for (let y = 2016; y <= 2025; y++) {
+      records[y] = { shouldAttend: true, attended: false, happened: y === 2025 };
+    }
+    expect(countRefractoryYears(a, records, 2025, 10)).toBe(6);
   });
 });

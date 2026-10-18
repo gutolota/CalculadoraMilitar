@@ -24,6 +24,7 @@ import {
   csHistoryYears,
   isCsMandatoryForYear,
   countRefractoryYears,
+  OVER_30_AGE_THRESHOLD,
 } from "../utils/enrollmentRules";
 
 const SYSTEM_SETTINGS = {
@@ -535,7 +536,13 @@ export default function CalculatorV2() {
                                 <span
                                   className={`ml-auto text-[9px] font-black shrink-0 ${isMiss ? "text-rose-600" : isOk ? "text-emerald-600" : "text-slate-400"}`}
                                 >
-                                  {isMiss ? "✗ Falta" : isOk ? "✓ Ok" : "—"}
+                                  {isMiss
+                                    ? "✗ Falta"
+                                    : isOk
+                                      ? "✓ Ok"
+                                      : !mandatory && year - analysis.classYear > OVER_30_AGE_THRESHOLD
+                                        ? "29+ s/ cob."
+                                        : "—"}
                                 </span>
                               </div>
                             </div>

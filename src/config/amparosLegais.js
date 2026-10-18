@@ -35,4 +35,4 @@ export const DEFAULT_RULES = Object.fromEntries(
   AMPAROS_LEGAIS.map(({ key, mult, amparo }) => [key, { mult, amparo }])
 );
 
-export const DEFAULT_BASE_FEE = 6.69;
+export const DEFAULT_BASE_FEE = 6.71;

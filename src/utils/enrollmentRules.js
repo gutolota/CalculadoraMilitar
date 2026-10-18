@@ -215,6 +215,11 @@ export function csHistoryYears(analysis, currentYear) {
 export function isCsMandatoryForYear(analysis, year) {
   if (!analysis?.valid) return false;
   if (analysis.isOver30) return false;
+  // A obrigatoriedade de CS cessa no ano em que o cidadão completa mais de
+  // OVER_30_AGE_THRESHOLD anos (ex.: 28), mesmo que no ano do alistamento
+  // ele ainda não fosse "maior de 30". A partir daí, "29+ s/ cob.".
+  const ageInYear = year - analysis.classYear;
+  if (ageInYear > OVER_30_AGE_THRESHOLD) return false;
   if (year === analysis.enrollYear) return analysis.csMandatoryThisYear;
   return year >= analysis.csFirstMandatoryYear;
 }
