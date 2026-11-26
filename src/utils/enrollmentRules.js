@@ -20,6 +20,9 @@ export const ENROLLMENT_DEADLINE_MONTH = 6; // junho
  */
 export const OVER_30_AGE_THRESHOLD = 28;
 
+// Máximo de faltas cobráveis: uma por CS dos 18 aos OVER_30_AGE_THRESHOLD anos (inclusive).
+export const MAX_REFRACTORY_YEARS = OVER_30_AGE_THRESHOLD - 18 + 1;
+
 /** Converte "AAAA-MM-DD" (valor de <input type="date">) em partes numéricas. */
 export function parseISODate(iso) {
   if (typeof iso !== 'string') return null;

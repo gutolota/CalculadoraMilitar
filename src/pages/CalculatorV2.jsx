@@ -19,7 +19,7 @@ import {
   DEFAULT_RULES,
   DEFAULT_BASE_FEE,
 } from "../config/amparosLegais";
-import {
+import { MAX_REFRACTORY_YEARS,
   analyzeEnrollment,
   csHistoryYears,
   isCsMandatoryForYear,
@@ -29,7 +29,7 @@ import {
 
 const SYSTEM_SETTINGS = {
   militaryAge: 18,
-  maxRefractoryYears: 10,
+  maxRefractoryYears: MAX_REFRACTORY_YEARS,
   maxExarYears: 5,
 };
 

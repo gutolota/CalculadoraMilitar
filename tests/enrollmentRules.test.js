@@ -5,6 +5,7 @@ import {
   csHistoryYears,
   isCsMandatoryForYear,
   countRefractoryYears,
+  MAX_REFRACTORY_YEARS,
 } from '../src/utils/enrollmentRules.js';
 import { DEFAULT_BASE_FEE, DEFAULT_RULES } from '../src/config/amparosLegais.js';
 
@@ -319,5 +320,21 @@ describe('teto de cobrança de faltas aos 28 anos (classe 1993, alistado 10/06/2
       records[y] = { shouldAttend: true, attended: false, happened: y === 2025 };
     }
     expect(countRefractoryYears(a, records, 2025, 10)).toBe(6);
+  });
+});
+
+// Classe 1996, alistado no prazo em 01/03/2014, faltou a todas as CS de 2014 a 2024
+// (18 a 28 anos): são 11 faltas cobráveis, inclusive a de 2024.
+describe('classe 1996 faltando de 2014 a 2024', () => {
+  const a = analyzeEnrollment({ birthYear: 1996, enlistmentDate: '2014-03-01' });
+  const recs = {};
+  for (let y = 2014; y <= 2026; y++) recs[y] = { shouldAttend: true, attended: false, happened: true };
+
+  it('conta 11 faltas, incluindo 2024 (28 anos)', () => {
+    expect(countRefractoryYears(a, recs, 2026, MAX_REFRACTORY_YEARS)).toBe(11);
+  });
+
+  it('o limite máximo cobre dos 18 aos 28 anos', () => {
+    expect(MAX_REFRACTORY_YEARS).toBe(11);
   });
 });
